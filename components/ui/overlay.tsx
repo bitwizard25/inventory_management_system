@@ -31,10 +31,10 @@ export function Overlay({
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <h2 id="modal-title" className="text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900 whitespace-nowrap">
+            <h2 id="modal-title" className="text-xl font-semibold tracking-tight leading-tight text-slate-900 whitespace-nowrap">
               {title}
             </h2>
-            <p className="mt-1 text-[14px] text-slate-500">{subtitle}</p>
+            <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
           </div>
           <button
             onClick={onClose}

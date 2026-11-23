@@ -105,7 +105,7 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
                   {sale.customer}
                 </td>
                 <td className={tableBodyCellClass}>
-                  <p className="text-[14px] font-medium text-slate-800">
+                  <p className="text-[13px] font-medium text-slate-800">
                     {sale.items.length} {sale.items.length === 1 ? "line item" : "line items"}
                   </p>
                   <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-600">
@@ -113,7 +113,7 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
                     {sale.items.length > 1 ? ` + ${sale.items.length - 1} more` : ""}
                   </p>
                 </td>
-                <td className={`${tableBodyCellClass} text-[14px] tabular-nums text-slate-600 font-medium whitespace-nowrap`}>
+                <td className={`${tableBodyCellClass} text-[13px] tabular-nums text-slate-600 font-medium whitespace-nowrap`}>
                   {dateLabel(sale.date)}
                 </td>
                 <td className={`${tableBodyCellClass} text-right font-semibold tabular-nums text-slate-900 whitespace-nowrap`}>

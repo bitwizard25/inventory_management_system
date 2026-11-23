@@ -10,7 +10,7 @@ import type {
   Supplier,
 } from "@/types/inventory"
 
-export const STORAGE_KEY = "gada-electronics-demo-v5"
+export const STORAGE_KEY = "gada-electronics-demo-v8"
 
 export const SELLER_METADATA: SellerInfo = {
   name: "Gada Electronics",
@@ -28,6 +28,8 @@ export const customersSeed: Customer[] = [
   { id: "c4", name: "Krishnan Iyer", phone: "+91 98204 77889", gstin: "27AAAKI7788F1Z0", city: "Mumbai" },
   { id: "c5", name: "Patrakar Popatlal", phone: "+91 98205 99001", gstin: "27AAAPP9900G1Z4", city: "Mumbai" },
   { id: "c6", name: "Babita Iyer", phone: "+91 98206 22334", gstin: "27AAABI2233H1Z7", city: "Mumbai" },
+  { id: "c7", name: "Aatmaram Tukaram Bhide", phone: "+91 98207 44556", gstin: "27AAATB4455J1Z1", city: "Mumbai" },
+  { id: "c8", name: "Dr. Hansraj Hathi", phone: "+91 98208 66778", gstin: "27AAAHH6677K1Z5", city: "Mumbai" },
 ]
 
 export const suppliersSeed: Supplier[] = [
@@ -121,12 +123,32 @@ export const seed: InventoryState = {
   customers: customersSeed,
   suppliers: suppliersSeed,
   sales: [
+    // --- Last 7 Days (Nov 18 - Nov 24, 2026) --- Total: ₹7,42,901 (6 orders)
     makeSale("SO-1048", "c1", "Gokuldham Society Committee", [line("i1", 2), line("i10", 1)], "2026-11-23", "Paid"),
     makeSale("SO-1047", "c2", "Roshan Singh Sodhi",          [line("i8", 1), line("i9", 2)],   "2026-11-23", "Confirmed"),
     makeSale("SO-1046", "c3", "Taarak Mehta",                [line("i3", 1), line("i7", 1)],   "2026-11-22", "Paid"),
     makeSale("SO-1045", "c4", "Krishnan Iyer",               [line("i6", 1)],                  "2026-11-21", "Confirmed"),
     makeSale("SO-1044", "c5", "Patrakar Popatlal",           [line("i4", 1)],                  "2026-11-20", "Draft"),
     makeSale("SO-1043", "c6", "Babita Iyer",                 [line("i9", 1), line("i10", 1)],  "2026-11-19", "Paid"),
+
+    // --- 8 to 30 Days Ago (Oct 26 - Nov 17, 2026) --- Brings 30d Total to ₹15,20,148 (13 orders)
+    makeSale("SO-1042", "c8", "Dr. Hansraj Hathi",           [line("i3", 1), line("i7", 1), line("i9", 2)], "2026-11-15", "Paid"),
+    makeSale("SO-1041", "c7", "Aatmaram Tukaram Bhide",       [line("i4", 1), line("i9", 1)],                 "2026-11-12", "Paid"),
+    makeSale("SO-1040", "s5", "Sundarlal Enterprises",       [line("i5", 3)],                                "2026-11-10", "Paid"),
+    makeSale("SO-1039", "c2", "Roshan Singh Sodhi",          [line("i1", 1)],                                "2026-11-06", "Paid"),
+    makeSale("SO-1038", "c1", "Gokuldham Society Committee", [line("i2", 2), line("i8", 1)],                 "2026-11-03", "Paid"),
+    makeSale("SO-1037", "c5", "Patrakar Popatlal",           [line("i6", 1)],                                "2026-10-31", "Paid"),
+    makeSale("SO-1036", "c6", "Babita Iyer",                 [line("i10", 1)],                               "2026-10-28", "Paid"),
+
+    // --- 31 to 90 Days Ago (Aug 27 - Oct 25, 2026) --- Brings 90d Total to ₹25,07,532 (21 orders)
+    makeSale("SO-1035", "c3", "Taarak Mehta",                [line("i1", 1), line("i7", 1)],                 "2026-10-20", "Paid"),
+    makeSale("SO-1034", "c8", "Dr. Hansraj Hathi",           [line("i2", 1), line("i3", 1)],                 "2026-10-14", "Paid"),
+    makeSale("SO-1033", "c1", "Gokuldham Society Committee", [line("i5", 2), line("i1", 1)],                 "2026-10-05", "Paid"),
+    makeSale("SO-1032", "c4", "Krishnan Iyer",               [line("i8", 1), line("i9", 1)],                 "2026-09-28", "Paid"),
+    makeSale("SO-1031", "c7", "Aatmaram Tukaram Bhide",       [line("i2", 1)],                                "2026-09-21", "Paid"),
+    makeSale("SO-1030", "c2", "Roshan Singh Sodhi",          [line("i8", 1), line("i4", 1)],                 "2026-09-15", "Paid"),
+    makeSale("SO-1029", "c6", "Babita Iyer",                 [line("i6", 1), line("i9", 1)],                 "2026-09-08", "Paid"),
+    makeSale("SO-1028", "c5", "Patrakar Popatlal",           [line("i1", 1)],                                "2026-09-02", "Paid"),
   ],
   purchases: [
     makePO("PO-2024", "s5", "Sundarlal Enterprises",  [line("i5", 10)],               "2026-11-30", "Pending"),
@@ -134,6 +156,9 @@ export const seed: InventoryState = {
     makePO("PO-2022", "s2", "Voltas Regional Hub",    [line("i2", 15)],               "2026-11-27", "Pending"),
     makePO("PO-2021", "s3", "LG Electronics West",    [line("i4", 8)],                "2026-11-25", "Received"),
     makePO("PO-2020", "s4", "Bhogilal Distributors",  [line("i7", 12), line("i9", 8)], "2026-11-22", "Received"),
+    makePO("PO-2019", "s1", "Sony India B2B",         [line("i1", 8)],                "2026-11-10", "Received"),
+    makePO("PO-2018", "s2", "Voltas Regional Hub",    [line("i8", 10)],               "2026-10-25", "Received"),
+    makePO("PO-2017", "s3", "LG Electronics West",    [line("i3", 12)],               "2026-10-15", "Received"),
   ],
   movements: [
     {

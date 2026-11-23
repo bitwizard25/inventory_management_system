@@ -43,11 +43,11 @@ export function MetricCard({
           </span>
         )}
       </div>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.025em] leading-tight tabular-nums text-slate-900">
+      <p className="mt-3 text-2xl font-semibold tracking-tight leading-tight tabular-nums text-slate-900">
         {value}
       </p>
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
-        <span className="text-[14px] font-medium text-slate-500 truncate">{note}</span>
+        <span className="text-xs font-medium text-slate-500 truncate">{note}</span>
         {trend && (
           <span
             className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${trendClass}`}

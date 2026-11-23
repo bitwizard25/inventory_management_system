@@ -83,12 +83,21 @@ export function StockView({
           value={statusFilter}
           onChange={setStatusFilter}
         />
-        <Pills
-          label="Godown"
-          options={["All godowns", ...godowns] as const}
-          value={godownFilter}
-          onChange={setGodownFilter}
-        />
+        <div className="inline-flex items-center gap-2">
+          <span className="text-xs font-medium text-slate-500 whitespace-nowrap">Godown:</span>
+          <select
+            value={godownFilter}
+            onChange={(e) => setGodownFilter(e.target.value as "All godowns" | Godown)}
+            className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-400"
+          >
+            <option value="All godowns">All godowns</option>
+            {godowns.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </div>
       </FilterBar>
 
       {/* 3. Primary Data Table: standardized table primitive */}
@@ -117,7 +126,7 @@ export function StockView({
                   {item.sku}
                 </td>
                 <td className={tableBodyCellClass}>
-                  <p className="max-w-[240px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-slate-950 leading-snug">
+                  <p className="max-w-[240px] truncate text-[13px] font-semibold text-slate-900 group-hover:text-slate-950 leading-snug">
                     {item.name}
                   </p>
                   <p className="text-xs text-slate-600 mt-0.5">{item.category}</p>

@@ -92,7 +92,7 @@ export function Header({
               className="absolute right-0 top-14 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xl ring-1 ring-slate-900/5"
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h2 className="text-[14px] font-bold text-slate-900">Low Stock Alerts</h2>
+                <h2 className="text-sm font-semibold text-slate-900">Low Stock Alerts</h2>
                 <span className="rounded-full bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20 px-2.5 py-0.5 text-xs font-bold">
                   {lowStock.length} items
                 </span>

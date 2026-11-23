@@ -76,8 +76,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       if (value) {
         const parsed = JSON.parse(value) as Partial<InventoryState>
         const validItems = Array.isArray(parsed.items) && parsed.items.length > 0 ? parsed.items : seed.items
-        const validSales = Array.isArray(parsed.sales) ? parsed.sales : seed.sales
-        const validPurchases = Array.isArray(parsed.purchases) ? parsed.purchases : seed.purchases
+        const validSales = Array.isArray(parsed.sales) && parsed.sales.length >= seed.sales.length ? parsed.sales : seed.sales
+        const validPurchases = Array.isArray(parsed.purchases) && parsed.purchases.length >= seed.purchases.length ? parsed.purchases : seed.purchases
         const validMovements = Array.isArray(parsed.movements) ? parsed.movements : seed.movements
         const validCustomers = Array.isArray(parsed.customers) && parsed.customers.length > 0 ? parsed.customers : seed.customers
         const validSuppliers = Array.isArray(parsed.suppliers) && parsed.suppliers.length > 0 ? parsed.suppliers : seed.suppliers
@@ -367,12 +367,20 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       note: string,
       performedBy: PerformedBy = "Nattu Kaka"
     ) => {
-      let success = false
+      const targetItem = state.items.find((entry) => entry.id === itemId)
+      if (!targetItem || !Number.isInteger(delta) || delta === 0 || targetItem.quantity + delta < 0) {
+        toast.error("Enter a valid adjustment that does not make stock negative.")
+        return false
+      }
+
+      const finalNote = note.trim() || "Physical stock audit"
+      const timestamp = new Date().toISOString()
+      const refId = `ADJ-${Date.now().toString().slice(-4)}`
+
       setState((current) => {
         const item = current.items.find((entry) => entry.id === itemId)
-        if (!item || !Number.isInteger(delta) || delta === 0 || item.quantity + delta < 0) return current
+        if (!item || item.quantity + delta < 0) return current
         const result = item.quantity + delta
-        success = true
 
         const movement: StockMovement = {
           id: `m-adj-${Date.now()}`,
@@ -382,9 +390,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           type: "ADJUSTMENT",
           delta,
           resultingQty: result,
-          referenceId: `ADJ-${Date.now().toString().slice(-4)}`,
-          timestamp: new Date().toISOString(),
-          note: note.trim() || "Physical count correction",
+          referenceId: refId,
+          timestamp,
+          note: finalNote,
           performedBy,
           fromGodown: delta < 0 ? item.godown : undefined,
           toGodown: delta > 0 ? item.godown : undefined,
@@ -397,14 +405,10 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         }
       })
 
-      if (success) {
-        toast.success(`Stock adjusted · ${delta > 0 ? "+" : ""}${delta} units`)
-      } else {
-        toast.error("Enter a valid adjustment that does not make stock negative.")
-      }
-      return success
+      toast.success(`Stock adjusted · ${delta > 0 ? "+" : ""}${delta} units`)
+      return true
     },
-    []
+    [state.items]
   )
 
   const transferStock = useCallback(

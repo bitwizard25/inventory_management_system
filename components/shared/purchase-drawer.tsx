@@ -50,7 +50,7 @@ export function PurchaseDrawer({ purchaseId, onClose, onReceive }: PurchaseDrawe
             type="button"
             onClick={onClose}
             aria-label="Close purchase order"
-            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            className="flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <X size={20} />
           </button>
@@ -78,17 +78,17 @@ export function PurchaseDrawer({ purchaseId, onClose, onReceive }: PurchaseDrawe
           )}
 
           <div>
-            <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900 mb-3">Line items ({po.items.length})</h3>
+            <h3 className="text-sm font-semibold tracking-[-0.025em] leading-tight text-slate-900 mb-3">Line items ({po.items.length})</h3>
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
               {po.items.map((line) => (
                 <div key={line.itemId} className="flex items-center justify-between p-4 hover:bg-slate-900/[0.03] transition-colors">
                   <div>
-                    <p className="text-[14px] font-semibold text-slate-900">{line.itemName}</p>
+                    <p className="text-[13px] font-semibold text-slate-900">{line.itemName}</p>
                     <p className="mt-0.5 font-mono text-xs text-slate-600">
                       {line.sku} · {line.quantity} units @ {formatINR(line.unitPrice)}
                     </p>
                   </div>
-                  <span className="text-[14px] font-bold tabular-nums text-slate-900">
+                  <span className="text-[13px] font-bold tabular-nums text-slate-900">
                     {formatINR(line.quantity * line.unitPrice)}
                   </span>
                 </div>
@@ -96,7 +96,7 @@ export function PurchaseDrawer({ purchaseId, onClose, onReceive }: PurchaseDrawe
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200/80 p-5 bg-white space-y-2.5 text-[14px]">
+          <div className="rounded-xl border border-slate-200/80 p-5 bg-white space-y-2.5 text-[13px]">
             <div className="flex justify-between text-slate-600">
               <span>Taxable Subtotal</span>
               <span className="tabular-nums font-semibold text-slate-900">{formatINR(subtotal)}</span>

@@ -45,7 +45,7 @@ export function FilterBar({
         {children}
       </div>
       {summary && (
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-[14px] text-slate-600">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-[13px] text-slate-600">
           <span className="font-medium text-slate-700">{summary}</span>
           {onClear && (
             <button

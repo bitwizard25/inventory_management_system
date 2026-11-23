@@ -125,7 +125,7 @@ export function OrderModal({
             placeholder={
               type === "sale" ? "e.g. Taarak Mehta or Gokuldham Committee" : "e.g. Voltas Regional Hub"
             }
-            className="mt-2 min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3.5 text-[16px] text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-500"
+            className="mt-2 h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-[13px] text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-400"
           />
           <datalist id={type === "sale" ? "customer-options" : "supplier-options"}>
             {partySuggestions.map((value) => (
@@ -171,7 +171,7 @@ export function OrderModal({
                       <select
                         value={entry.itemId}
                         onChange={(event) => selectLine(index, event.target.value)}
-                        className="mt-1.5 min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 text-[16px] outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-500"
+                        className="mt-1.5 h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-[13px] outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-400"
                       >
                         <option value="">Select an item...</option>
                         {items.map((candidate) => (
@@ -198,10 +198,10 @@ export function OrderModal({
                         min="1"
                         value={entry.quantity}
                         onChange={(event) => updateLine(index, { quantity: Number(event.target.value) })}
-                        className={`mt-1.5 min-h-[44px] w-full rounded-lg border px-3 text-[16px] tabular-nums outline-none transition ${
+                        className={`mt-1.5 h-9 w-full rounded-lg border px-3 text-[13px] tabular-nums outline-none transition ${
                           exceeds
                             ? "border-rose-400 bg-rose-50 text-rose-900"
-                            : "border-slate-300 bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-500"
+                            : "border-slate-300 bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-400"
                         }`}
                       />
                     </label>
@@ -216,7 +216,7 @@ export function OrderModal({
                         value={entry.unitPrice ?? item?.unitPrice ?? ""}
                         disabled={type === "sale"}
                         onChange={(event) => updateLine(index, { unitPrice: Number(event.target.value) })}
-                        className="mt-1.5 min-h-[44px] w-full rounded-lg border border-slate-300 px-3 text-[16px] tabular-nums disabled:bg-slate-100 disabled:text-slate-600 outline-none focus:border-slate-900 hover:border-slate-500"
+                        className="mt-1.5 h-9 w-full rounded-lg border border-slate-300 px-3 text-[13px] tabular-nums disabled:bg-slate-100 disabled:text-slate-600 outline-none focus:border-slate-900 hover:border-slate-400"
                       />
                     </label>
 
@@ -225,7 +225,7 @@ export function OrderModal({
                         type="button"
                         disabled={lines.length === 1}
                         onClick={() => setLines((current) => current.filter((_, i) => i !== index))}
-                        className="flex size-11 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 hover:text-slate-900 hover:border-slate-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                        className="flex size-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 hover:text-slate-900 hover:border-slate-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                         aria-label="Remove line item"
                       >
                         <X size={16} />
@@ -251,7 +251,7 @@ export function OrderModal({
         </div>
 
         <div className="flex items-center justify-between border-t border-slate-200 pt-5">
-          <span className="text-[14px] font-semibold text-slate-700">Order Taxable Subtotal</span>
+          <span className="text-[13px] font-semibold text-slate-700">Order Taxable Subtotal</span>
           <span className="text-2xl font-bold tabular-nums text-slate-900">{formatINR(total)}</span>
         </div>
       </div>

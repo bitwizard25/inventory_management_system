@@ -46,7 +46,7 @@ export function Sidebar({
               <Boxes size={20} />
             </span>
             <span className="min-w-0">
-              <span className="block text-[15px] font-bold tracking-tight text-slate-900 leading-tight truncate">
+              <span className="block text-sm font-semibold tracking-tight text-slate-900 leading-tight truncate">
                 Gada Electronics
               </span>
               <span className="block text-xs font-medium text-slate-500 truncate">Goregaon East · Mumbai</span>
@@ -79,7 +79,7 @@ export function Sidebar({
                     onNavigate(label)
                     onCloseMobileNav()
                   }}
-                  className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-3.5 text-[14px] transition-all duration-200 ease-out active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                  className={`flex h-9 w-full items-center justify-between rounded-lg px-3 text-[13px] font-medium transition-all duration-200 ease-out active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                     active
                       ? "bg-slate-100 text-slate-950 font-semibold"
                       : "text-slate-700 hover:bg-slate-900/[0.03] hover:text-slate-950 font-medium"
@@ -125,7 +125,7 @@ export function Sidebar({
                 </span>
                 <div className="min-w-0">
                   <p className="text-[13px] font-semibold text-slate-900 truncate">Jethalal Gada</p>
-                  <p className="text-[11px] text-slate-500 truncate">Proprietor · Admin</p>
+                  <p className="text-xs text-slate-500 truncate">Proprietor · Admin</p>
                 </div>
               </div>
               <ChevronDown size={14} className="text-slate-500 shrink-0" />

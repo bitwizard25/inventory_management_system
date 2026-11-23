@@ -258,7 +258,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
       {/* 4. Recharts Analytics Panel: rounded-xl container */}
       <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="mb-4">
-          <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">
+          <h3 className="text-sm font-semibold tracking-[-0.025em] leading-tight text-slate-900">
             {tab === "Stock valuation"
               ? "Valuation by Product Category"
               : tab === "Sales & GST revenue"

@@ -30,7 +30,7 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none"
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none print:static print:inset-auto print:z-auto print:flex-none print:bg-transparent print:p-0"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
@@ -39,7 +39,7 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Tax invoice details"
-        className="flex h-full w-full max-w-[580px] flex-col border-l border-slate-200/80 bg-white shadow-2xl ring-1 ring-slate-900/5 animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none print:static print:max-w-none print:shadow-none print:border-none"
+        className="flex h-full w-full max-w-[580px] flex-col border-l border-slate-200/80 bg-white shadow-2xl ring-1 ring-slate-900/5 animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none print:static print:h-auto print:w-full print:max-w-none print:shadow-none print:border-none print:ring-0 print:p-0 print:bg-white"
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5 print:hidden">
           <div>
@@ -53,14 +53,14 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
             type="button"
             onClick={onClose}
             aria-label="Close invoice"
-            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            className="flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="invoice-content rounded-xl border border-slate-200/80 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 print:overflow-visible print:p-0 print:m-0 print:block">
+          <div className="invoice-content rounded-xl border border-slate-200/80 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] print:border print:border-slate-300 print:shadow-none print:p-6 print:rounded-lg">
             <div className="flex items-start justify-between border-b border-slate-200 pb-5">
               <div>
                 <p className="text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900">{SELLER_METADATA.name}</p>
@@ -73,7 +73,7 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
               <StatusBadge status={sale.status} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 py-5 text-[14px]">
+            <div className="grid grid-cols-2 gap-4 py-5 text-[13px]">
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Billed to</p>
                 <p className="mt-1 font-bold text-slate-900">{sale.customer}</p>
@@ -124,7 +124,7 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
               </tbody>
             </table>
 
-            <div className="ml-auto mt-5 max-w-[280px] space-y-2 text-[14px]">
+            <div className="ml-auto mt-5 max-w-[280px] space-y-2 text-[13px]">
               <div className="flex justify-between text-slate-600">
                 <span>Taxable Subtotal</span>
                 <span className="tabular-nums font-semibold text-slate-900">{formatINR(subtotal)}</span>
@@ -142,9 +142,9 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
             <div className="mt-8 border-t border-slate-200 pt-4 flex items-center justify-between text-xs text-slate-600">
               <div>
                 <p className="font-bold text-slate-800">Authorized Signatory</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{SELLER_METADATA.owner} · Gada Electronics</p>
+                <p className="text-xs text-slate-500 mt-0.5">{SELLER_METADATA.owner} · Gada Electronics</p>
               </div>
-              <p className="text-[11px] text-slate-500 italic">Thank you for your business!</p>
+              <p className="text-xs text-slate-500 italic">Thank you for your business!</p>
             </div>
           </div>
         </div>

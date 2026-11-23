@@ -33,9 +33,17 @@ export function AppShell() {
   const lowStock = items.filter((item) => item.quantity <= item.minLevel)
   const stockValue = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
 
-  const cutoff = new Date(`${new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10)}T00:00:00Z`)
+  // Anchor period calculations to the active dataset timeline so 7d/30d/90d always filter accurately
+  const latestSaleDateStr = sales.reduce((max, s) => (s.date > max ? s.date : max), "")
+  const todayStr = new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10)
+  const baseDateStr = latestSaleDateStr > todayStr ? latestSaleDateStr : todayStr
+  const baseDate = new Date(`${baseDateStr}T00:00:00Z`)
+
+  const cutoff = new Date(baseDate)
   cutoff.setUTCDate(cutoff.getUTCDate() - periodDays + 1)
-  const periodSales = sales.filter((sale) => sale.date >= cutoff.toISOString().slice(0, 10))
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+
+  const periodSales = sales.filter((sale) => sale.date >= cutoffStr && sale.date <= baseDateStr)
   const periodSalesTotal = periodSales.reduce((sum, sale) => sum + sale.totalAmount, 0)
   const pendingPOs = purchases.filter((order) => order.status === "Pending").length
 
@@ -62,18 +70,22 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-[#F6F7F9] text-slate-900 font-sans antialiased">
-      <Toaster position="top-right" richColors closeButton />
+      <div className="print:hidden">
+        <Toaster position="top-right" richColors closeButton />
+      </div>
 
-      <Sidebar
-        view={view}
-        onNavigate={setView}
-        lowStockCount={lowStock.length}
-        mobileNav={mobileNav}
-        onCloseMobileNav={() => setMobileNav(false)}
-        onResetDemo={resetDemoData}
-      />
+      <div className="print:hidden">
+        <Sidebar
+          view={view}
+          onNavigate={setView}
+          lowStockCount={lowStock.length}
+          mobileNav={mobileNav}
+          onCloseMobileNav={() => setMobileNav(false)}
+          onResetDemo={resetDemoData}
+        />
+      </div>
 
-      <div className="md:pl-[250px]">
+      <div className="md:pl-[250px] print:hidden">
         <Header
           view={view}
           search={search}
@@ -149,13 +161,15 @@ export function AppShell() {
       )}
 
       {modal && (
-        <OrderModal
-          type={modal}
-          prefillItem={prefillItem}
-          onClose={() => setModal(null)}
-          onSale={inventory.createSale}
-          onPurchase={inventory.createPurchaseOrder}
-        />
+        <div className="print:hidden">
+          <OrderModal
+            type={modal}
+            prefillItem={prefillItem}
+            onClose={() => setModal(null)}
+            onSale={inventory.createSale}
+            onPurchase={inventory.createPurchaseOrder}
+          />
+        </div>
       )}
     </div>
   )

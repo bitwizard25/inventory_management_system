@@ -129,7 +129,7 @@ export function DashboardView({
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
               <div>
-                <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">Urgent Replenishment Alerts</h3>
+                <h3 className="text-sm font-semibold tracking-[-0.025em] leading-tight text-slate-900">Urgent Replenishment Alerts</h3>
                 <p className="mt-0.5 text-[13px] text-slate-500">
                   Products at or below safety reorder threshold requiring purchase orders
                 </p>
@@ -221,12 +221,12 @@ export function DashboardView({
                   <span className="flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500 border border-slate-200">
                     <PackageSearch size={20} />
                   </span>
-                  <p className="mt-3.5 text-[15px] font-bold text-slate-900">
+                  <p className="mt-3.5 text-sm font-semibold text-slate-900">
                     {items.some((i) => i.quantity <= i.minLevel)
                       ? "No matching alerts"
                       : "All stock levels optimal"}
                   </p>
-                  <p className="mt-1 text-[14px] text-slate-600">
+                  <p className="mt-1 text-[13px] text-slate-600">
                     {items.some((i) => i.quantity <= i.minLevel)
                       ? "Try adjusting search criteria"
                       : "No SKUs currently fall at or below their reorder threshold."}
@@ -256,7 +256,7 @@ export function DashboardView({
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
               <div>
-                <h3 className="text-[14px] font-bold tracking-[-0.025em] text-slate-900">Godown Distribution</h3>
+                <h3 className="text-sm font-semibold tracking-[-0.025em] text-slate-900">Godown Distribution</h3>
                 <p className="text-xs text-slate-500 mt-0.5">Inventory holdings across Mumbai locations</p>
               </div>
               <button
@@ -279,8 +279,8 @@ export function DashboardView({
                     className="cursor-pointer rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 hover:bg-slate-100/70 transition-colors"
                   >
                     <p className="text-xs font-medium text-slate-600 truncate">{godown}</p>
-                    <p className="mt-1 text-[15px] font-bold text-slate-900 tabular-nums">{formatINR(value)}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">{count} SKUs stocked</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900 tabular-nums">{formatINR(value)}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">{count} SKUs stocked</p>
                   </div>
                 )
               })}
@@ -293,7 +293,7 @@ export function DashboardView({
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <div>
-                <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">Recent Movements</h3>
+                <h3 className="text-sm font-semibold tracking-[-0.025em] leading-tight text-slate-900">Recent Movements</h3>
                 <p className="mt-0.5 text-[13px] text-slate-500">Ledger entries with technician signatures</p>
               </div>
               <button
@@ -325,7 +325,7 @@ export function DashboardView({
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-[14px] font-semibold text-slate-900">
+                        <span className="truncate text-[13px] font-semibold text-slate-900">
                           {movement.itemName}
                         </span>
                         <span

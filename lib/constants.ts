@@ -49,7 +49,7 @@ export const tableHeadCellClass = "whitespace-nowrap px-4 py-3"
 export const tableBodyRowClass =
   "border-b border-slate-100 last:border-b-0 transition-colors duration-150 hover:bg-slate-900/[0.025]"
 
-export const tableBodyCellClass = "px-4 py-3.5 align-middle text-[14px] text-slate-900"
+export const tableBodyCellClass = "px-4 py-3.5 align-middle text-[13px] text-slate-900"
 
 export const tableActionCellClass = "px-4 py-3.5 align-middle text-right whitespace-nowrap"
 
