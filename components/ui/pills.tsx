@@ -28,7 +28,7 @@ export function Pills<T extends string>({
               aria-pressed={active}
               className={`h-8 whitespace-nowrap rounded-md px-3 text-[13px] font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                 active
-                  ? "bg-white text-slate-950 shadow-sm"
+                  ? "bg-white text-slate-950 shadow-sm font-medium"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >

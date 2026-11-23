@@ -216,7 +216,11 @@ export function DashboardView({
                                 />
                               </div>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5">Units / Safety Min</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {item.quantity === 0
+                                ? "Depleted (0 units)"
+                                : `${item.quantity} of ${item.minLevel} safety min threshold`}
+                            </p>
                           </div>
                           <StatusBadge status={status} />
                         </div>
@@ -293,13 +297,26 @@ export function DashboardView({
                 const godownItems = items.filter((i) => i.godown === godown)
                 const count = godownItems.length
                 const value = godownItems.reduce((acc, i) => acc + i.quantity * i.unitPrice, 0)
+                const godownLow = godownItems.filter((i) => i.quantity <= i.minLevel)
                 return (
                   <div
                     key={godown}
                     onClick={() => onNavigate("Stock")}
                     className="cursor-pointer rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 hover:bg-slate-100/70 transition-colors"
                   >
-                    <p className="text-xs font-medium text-slate-600 truncate">{godown}</p>
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-xs font-medium text-slate-600 truncate">{godown}</p>
+                      <span className="flex items-center gap-1.5 text-[11px] font-medium">
+                        <span
+                          className={`size-1.5 rounded-full shrink-0 ${
+                            godownLow.length > 0 ? "bg-amber-500" : "bg-emerald-500"
+                          }`}
+                        />
+                        <span className={godownLow.length > 0 ? "text-amber-700" : "text-emerald-700"}>
+                          {godownLow.length > 0 ? `${godownLow.length} reorder` : "Healthy"}
+                        </span>
+                      </span>
+                    </div>
                     <p className="mt-1 text-sm font-bold text-slate-900 tabular-nums">{formatINR(value)}</p>
                     <p className="mt-0.5 text-xs text-slate-500">{count} SKUs stocked</p>
                   </div>
@@ -349,14 +366,27 @@ export function DashboardView({
                         <span className="truncate text-[13px] font-semibold text-slate-900">
                           {movement.itemName}
                         </span>
-                        <span
-                          className={`shrink-0 text-xs font-bold tabular-nums ${
-                            plus ? "text-emerald-700" : "text-rose-700"
-                          }`}
-                        >
-                          {plus ? "+" : ""}
-                          {movement.delta}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                              movement.type === "PURCHASE"
+                                ? "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20"
+                                : movement.type === "SALE"
+                                ? "bg-slate-500/10 text-slate-700 ring-1 ring-inset ring-slate-500/20"
+                                : "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20"
+                            }`}
+                          >
+                            {movement.type}
+                          </span>
+                          <span
+                            className={`text-xs font-bold tabular-nums ${
+                              plus ? "text-emerald-700" : "text-rose-700"
+                            }`}
+                          >
+                            {plus ? "+" : ""}
+                            {movement.delta}
+                          </span>
+                        </div>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
                         <span className="font-mono text-xs text-slate-600 font-medium">{movement.referenceId}</span>

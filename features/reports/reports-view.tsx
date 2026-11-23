@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Download } from "lucide-react"
 import { toast } from "sonner"
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import {
   buttonClass,
   godowns,
@@ -21,6 +21,61 @@ import { PageIntro } from "@/components/ui/page-intro"
 import { Pills } from "@/components/ui/pills"
 import { itemStatus } from "@/components/ui/status-badge"
 
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: Array<{
+    name: string
+    value: number
+    color?: string
+    fill?: string
+    dataKey?: string
+  }>
+  label?: string
+}) {
+  if (!active || !payload || !payload.length) return null
+
+  const items = payload.filter((p) => typeof p.value === "number" && p.value > 0)
+  if (!items.length) return null
+  const total = items.reduce((sum, p) => sum + (p.value ?? 0), 0)
+
+  return (
+    <div className="rounded-lg border border-slate-700/80 bg-zinc-950 px-3.5 py-2.5 text-xs text-white shadow-xl min-w-[200px]">
+      <p className="font-semibold text-slate-200 border-b border-zinc-800 pb-1.5 mb-2">
+        {label}
+      </p>
+      <div className="space-y-1.5">
+        {items.map((item, idx) => {
+          const swatchColor = item.color || item.fill || "#0F766E"
+          return (
+            <div key={idx} className="flex items-center justify-between gap-3 text-slate-300">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className="size-2 rounded-full shrink-0"
+                  style={{ backgroundColor: swatchColor }}
+                />
+                <span className="truncate text-slate-300">{item.name}</span>
+              </div>
+              <span className="font-mono font-medium tabular-nums text-white shrink-0">
+                {formatINR(item.value)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      {items.length > 1 && (
+        <div className="mt-2 pt-2 border-t border-zinc-800 flex items-center justify-between text-xs font-semibold">
+          <span className="text-slate-400">Total</span>
+          <span className="font-mono tabular-nums text-white">{formatINR(total)}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface ReportsViewProps {
   items: InventoryItem[]
   sales: SaleOrder[]
@@ -32,54 +87,108 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
   const [godownFilter, setGodownFilter] = useState<"All godowns" | Godown>("All godowns")
   const [statusFilter, setStatusFilter] = useState<string>("All")
 
+  // Hydrate report filters from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const savedTab = sessionStorage.getItem("inv_reports_tab") as typeof tab | null
+    if (savedTab && ["Stock valuation", "Sales & GST revenue", "Distributor spend"].includes(savedTab)) {
+      setTab(savedTab)
+    }
+    const savedGodown = sessionStorage.getItem("inv_reports_godown") as typeof godownFilter | null
+    if (savedGodown && (savedGodown === "All godowns" || (godowns as readonly string[]).includes(savedGodown))) {
+      setGodownFilter(savedGodown)
+    }
+    const savedStatus = sessionStorage.getItem("inv_reports_status")
+    if (savedStatus) {
+      setStatusFilter(savedStatus)
+    }
+  }, [])
+
+  const handleGodownChange = (val: "All godowns" | Godown) => {
+    setGodownFilter(val)
+    try {
+      sessionStorage.setItem("inv_reports_godown", val)
+    } catch { }
+  }
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val)
+    try {
+      sessionStorage.setItem("inv_reports_status", val)
+    } catch { }
+  }
+
   const currentItems = items.filter((item) => godownFilter === "All godowns" || item.godown === godownFilter)
   const currentSales = sales.filter((sale) => statusFilter === "All" || sale.status === statusFilter)
   const currentPurchases = purchases.filter((po) => statusFilter === "All" || po.status === statusFilter)
 
   const stockChart = Object.entries(
-    currentItems.reduce<Record<string, number>>((acc, item) => {
-      acc[item.category] = (acc[item.category] ?? 0) + item.quantity * item.unitPrice
+    currentItems.reduce<Record<string, { inStock: number; lowStock: number; total: number }>>((acc, item) => {
+      acc[item.category] ??= { inStock: 0, lowStock: 0, total: 0 }
+      const val = item.quantity * item.unitPrice
+      const status = itemStatus(item)
+      if (status === "In stock") {
+        acc[item.category].inStock += val
+      } else {
+        acc[item.category].lowStock += val
+      }
+      acc[item.category].total += val
       return acc
     }, {})
   )
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value)
+    .map(([name, value]) => ({ name, ...value }))
+    .sort((a, b) => b.total - a.total)
 
   const salesChart = Object.entries(
-    currentSales.reduce<Record<string, number>>((acc, sale) => {
+    currentSales.reduce<Record<string, { paid: number; confirmed: number; draft: number; total: number }>>((acc, sale) => {
       const cust = sale.customer.split(" ")[0] ?? sale.customer
-      acc[cust] = (acc[cust] ?? 0) + sale.totalAmount
+      acc[cust] ??= { paid: 0, confirmed: 0, draft: 0, total: 0 }
+      if (sale.status === "Paid") {
+        acc[cust].paid += sale.totalAmount
+      } else if (sale.status === "Confirmed") {
+        acc[cust].confirmed += sale.totalAmount
+      } else {
+        acc[cust].draft += sale.totalAmount
+      }
+      acc[cust].total += sale.totalAmount
       return acc
     }, {})
   )
-    .map(([name, revenue]) => ({ name, revenue }))
-    .sort((a, b) => b.revenue - a.revenue)
+    .map(([name, value]) => ({ name, ...value }))
+    .sort((a, b) => b.total - a.total)
 
   const purchaseChart = Object.entries(
-    currentPurchases.reduce<Record<string, { pending: number; received: number }>>((acc, po) => {
-      acc[po.supplier] ??= { pending: 0, received: 0 }
-      acc[po.supplier][po.status === "Pending" ? "pending" : "received"] += po.totalAmount
+    currentPurchases.reduce<Record<string, { pending: number; received: number; total: number }>>((acc, po) => {
+      acc[po.supplier] ??= { pending: 0, received: 0, total: 0 }
+      if (po.status === "Received") {
+        acc[po.supplier].received += po.totalAmount
+      } else {
+        acc[po.supplier].pending += po.totalAmount
+      }
+      acc[po.supplier].total += po.totalAmount
       return acc
     }, {})
-  ).map(([name, value]) => ({
-    name: name.split(" ").slice(0, 2).join(" "),
-    ...value,
-  }))
+  )
+    .map(([name, value]) => ({
+      name: name.split(" ").slice(0, 2).join(" "),
+      ...value,
+    }))
+    .sort((a, b) => b.total - a.total)
 
   const rows =
     tab === "Stock valuation"
       ? currentItems.map((item) => [
-          item.sku,
-          item.name,
-          item.category,
-          item.godown,
-          item.quantity,
-          item.minLevel,
-          item.quantity * item.unitPrice,
-          itemStatus(item),
-        ])
+        item.sku,
+        item.name,
+        item.category,
+        item.godown,
+        item.quantity,
+        item.minLevel,
+        item.quantity * item.unitPrice,
+        itemStatus(item),
+      ])
       : tab === "Sales & GST revenue"
-      ? currentSales.map((sale) => [
+        ? currentSales.map((sale) => [
           sale.id,
           sale.customer,
           sale.date,
@@ -89,7 +198,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
           sale.totalAmount,
           sale.status,
         ])
-      : currentPurchases.map((po) => [
+        : currentPurchases.map((po) => [
           po.id,
           po.supplier,
           po.expectedDate,
@@ -105,8 +214,8 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
       tab === "Stock valuation"
         ? ["SKU", "Item", "Category", "Godown", "Quantity", "Minimum level", "Stock value INR", "Status"]
         : tab === "Sales & GST revenue"
-        ? ["SO", "Customer", "Date", "Units", "Subtotal INR", "GST (18%) INR", "Grand total INR", "Status"]
-        : ["PO", "Supplier", "Expected date", "Units", "Subtotal INR", "GST INR", "Grand total INR", "Status"]
+          ? ["SO", "Customer", "Date", "Units", "Subtotal INR", "GST (18%) INR", "Grand total INR", "Status"]
+          : ["PO", "Supplier", "Expected date", "Units", "Subtotal INR", "GST INR", "Grand total INR", "Status"]
 
     const csv = [headers, ...rows]
       .map((row) => row.map((val) => `"${String(val).replaceAll('"', '""')}"`).join(","))
@@ -126,6 +235,11 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
     setTab(val)
     setStatusFilter("All")
     setGodownFilter("All godowns")
+    try {
+      sessionStorage.setItem("inv_reports_tab", val)
+      sessionStorage.setItem("inv_reports_status", "All")
+      sessionStorage.setItem("inv_reports_godown", "All godowns")
+    } catch { }
   }
 
   const formatYAxisINR = (val: number) => {
@@ -162,11 +276,10 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
               key={label}
               type="button"
               onClick={() => setTabClean(label)}
-              className={`h-7 whitespace-nowrap rounded-lg px-3 text-[13px] transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
-                tab === label
-                  ? "bg-white text-slate-950 shadow-sm font-medium"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
+              className={`h-7 whitespace-nowrap rounded-lg px-3 text-[13px] transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${tab === label
+                ? "bg-white text-slate-950 shadow-sm font-medium"
+                : "text-slate-600 hover:text-slate-900"
+                }`}
             >
               {label}
             </button>
@@ -178,7 +291,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
             label="Godown"
             options={["All godowns", ...godowns] as const}
             value={godownFilter}
-            onChange={setGodownFilter}
+            onChange={handleGodownChange}
           />
         ) : (
           <Pills
@@ -189,7 +302,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                 : ["All", "Pending", "Received"]
             }
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={handleStatusChange}
           />
         )}
       </div>
@@ -255,17 +368,65 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
         )}
       </div>
 
-      {/* 4. Recharts Analytics Panel: rounded-xl container */}
+      {/* 4. Recharts Analytics Panel: rounded-xl container with explicit inline legend */}
       <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold tracking-[-0.025em] leading-tight text-slate-900">
-            {tab === "Stock valuation"
-              ? "Valuation by Product Category"
-              : tab === "Sales & GST revenue"
-              ? "Gross Revenue by Client"
-              : "Procurement Spend by Vendor"}
-          </h3>
-          <p className="mt-0.5 text-[13px] text-slate-500">Live breakdown calculated in Indian Rupees (₹)</p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h3 className="text-sm font-semibold tracking-[-0.025em] leading-tight text-slate-900">
+              {tab === "Stock valuation"
+                ? "Valuation by Product Category"
+                : tab === "Sales & GST revenue"
+                ? "Gross Revenue by Client"
+                : "Procurement Spend by Vendor"}
+            </h3>
+            <p className="mt-0.5 text-[13px] text-slate-500">Live breakdown calculated in Indian Rupees (₹)</p>
+          </div>
+
+          {/* Explicit inline legend: format matching exact design specifications */}
+          {tab === "Stock valuation" ? (
+            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#0F766E]" />
+                <span>In stock</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#D97706]" />
+                <span>Low stock</span>
+              </div>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <span className="hidden sm:inline text-slate-500">Bars show category valuation (₹)</span>
+            </div>
+          ) : tab === "Sales & GST revenue" ? (
+            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#0F766E]" />
+                <span>Paid</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#334155]" />
+                <span>Confirmed</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#D97706]" />
+                <span>Draft</span>
+              </div>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <span className="hidden sm:inline text-slate-500">Stacked client totals (₹)</span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#0F766E]" />
+                <span>Received</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm shrink-0 bg-[#D97706]" />
+                <span>Pending</span>
+              </div>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <span className="hidden sm:inline text-slate-500">Stacked vendor spend (₹)</span>
+            </div>
+          )}
         </div>
 
         <div className="h-64 w-full">
@@ -280,24 +441,45 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                   tickLine={false}
                   axisLine={false}
                 />
-                <Tooltip
-                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Value"]}
-                  contentStyle={{
-                    backgroundColor: "#09090B",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(15, 23, 42, 0.04)" }} />
+                <Bar
+                  dataKey="inStock"
+                  stackId="a"
+                  fill="#0F766E"
+                  maxBarSize={44}
+                  name="In stock"
+                  shape={(props: any) => {
+                    const top = !props.payload?.lowStock || props.payload.lowStock <= 0
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={top ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    )
                   }}
-                  itemStyle={{ color: "#F8FAFC" }}
-                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
-                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
                 />
-                <Bar dataKey="value" fill="#0F766E" maxBarSize={44} radius={[6, 6, 0, 0]} />
+                <Bar
+                  dataKey="lowStock"
+                  stackId="a"
+                  fill="#D97706"
+                  maxBarSize={44}
+                  name="Low stock"
+                  shape={(props: any) => {
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    )
+                  }}
+                />
               </BarChart>
             ) : tab === "Sales & GST revenue" ? (
-              <AreaChart data={salesChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+              <BarChart data={salesChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
                 <YAxis
@@ -306,21 +488,63 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                   tickLine={false}
                   axisLine={false}
                 />
-                <Tooltip
-                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Revenue"]}
-                  contentStyle={{
-                    backgroundColor: "#09090B",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(15, 23, 42, 0.04)" }} />
+                <Bar
+                  dataKey="paid"
+                  stackId="a"
+                  fill="#0F766E"
+                  maxBarSize={44}
+                  name="Paid"
+                  shape={(props: any) => {
+                    const p = props.payload
+                    const top = (!p?.confirmed || p.confirmed <= 0) && (!p?.draft || p.draft <= 0)
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={top ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    )
                   }}
-                  itemStyle={{ color: "#F8FAFC" }}
-                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#0F766E" fill="#0F766E18" strokeWidth={2.5} />
-              </AreaChart>
+                <Bar
+                  dataKey="confirmed"
+                  stackId="a"
+                  fill="#334155"
+                  maxBarSize={44}
+                  name="Confirmed"
+                  shape={(props: any) => {
+                    const p = props.payload
+                    const top = !p?.draft || p.draft <= 0
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={top ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    )
+                  }}
+                />
+                <Bar
+                  dataKey="draft"
+                  stackId="a"
+                  fill="#D97706"
+                  maxBarSize={44}
+                  name="Draft"
+                  shape={(props: any) => {
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    )
+                  }}
+                />
+              </BarChart>
             ) : (
               <BarChart data={purchaseChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -331,22 +555,42 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                   tickLine={false}
                   axisLine={false}
                 />
-                <Tooltip
-                  formatter={(val: any) => [formatINR(Number(val ?? 0))]}
-                  contentStyle={{
-                    backgroundColor: "#09090B",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(15, 23, 42, 0.04)" }} />
+                <Bar
+                  dataKey="received"
+                  stackId="a"
+                  fill="#0F766E"
+                  maxBarSize={44}
+                  name="Received"
+                  shape={(props: any) => {
+                    const top = !props.payload?.pending || props.payload.pending <= 0
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={top ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    )
                   }}
-                  itemStyle={{ color: "#F8FAFC" }}
-                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
-                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
                 />
-                <Bar dataKey="received" stackId="a" fill="#0F766E" maxBarSize={44} radius={[0, 0, 0, 0]} name="Received" />
-                <Bar dataKey="pending" stackId="a" fill="#334155" maxBarSize={44} radius={[6, 6, 0, 0]} name="Pending" />
+                <Bar
+                  dataKey="pending"
+                  stackId="a"
+                  fill="#D97706"
+                  maxBarSize={44}
+                  name="Pending"
+                  shape={(props: any) => {
+                    return (
+                      <Rectangle
+                        {...props}
+                        stroke="#FFFFFF"
+                        strokeWidth={1.5}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    )
+                  }}
+                />
               </BarChart>
             )}
           </ResponsiveContainer>
@@ -415,15 +659,14 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                   {tab === "Stock valuation"
                     ? row[4]
                     : typeof row[4] === "number"
-                    ? formatINR(row[4])
-                    : row[4]}
+                      ? formatINR(row[4])
+                      : row[4]}
                 </td>
                 <td
-                  className={`${tableBodyCellClass} text-right tabular-nums ${
-                    tab === "Stock valuation"
-                      ? "text-slate-700"
-                      : "font-semibold text-slate-900 whitespace-nowrap"
-                  }`}
+                  className={`${tableBodyCellClass} text-right tabular-nums ${tab === "Stock valuation"
+                    ? "text-slate-700"
+                    : "font-semibold text-slate-900 whitespace-nowrap"
+                    }`}
                 >
                   {typeof row[5] === "number"
                     ? tab === "Stock valuation"

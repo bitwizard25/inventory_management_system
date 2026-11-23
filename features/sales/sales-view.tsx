@@ -32,6 +32,22 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
 
+  // Hydrate filters from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const saved = sessionStorage.getItem("inv_sales_status")
+    if (saved && ["All", "Draft", "Confirmed", "Paid"].includes(saved)) {
+      setStatusFilter(saved)
+    }
+  }, [])
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val)
+    try {
+      sessionStorage.setItem("inv_sales_status", val)
+    } catch {}
+  }
+
   const filtered = sales.filter((sale) => {
     const matchesSearch = `${sale.id} ${sale.customer}`
       .toLowerCase()
@@ -66,14 +82,14 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
         }
         onClear={() => {
           setSearch("")
-          setStatusFilter("All")
+          handleStatusChange("All")
         }}
       >
         <Pills
           label="Status"
           options={["All", "Draft", "Confirmed", "Paid"]}
           value={statusFilter}
-          onChange={setStatusFilter}
+          onChange={handleStatusChange}
         />
       </FilterBar>
 

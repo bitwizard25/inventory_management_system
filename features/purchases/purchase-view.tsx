@@ -37,6 +37,22 @@ export function PurchaseView({
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("All")
 
+  // Hydrate filters from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const saved = sessionStorage.getItem("inv_purchases_status")
+    if (saved && ["All", "Pending", "Received"].includes(saved)) {
+      setStatusFilter(saved)
+    }
+  }, [])
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val)
+    try {
+      sessionStorage.setItem("inv_purchases_status", val)
+    } catch {}
+  }
+
   const filtered = purchases.filter((po) => {
     const matchesSearch = `${po.id} ${po.supplier}`
       .toLowerCase()
@@ -73,14 +89,14 @@ export function PurchaseView({
         }
         onClear={() => {
           setSearch("")
-          setStatusFilter("All")
+          handleStatusChange("All")
         }}
       >
         <Pills
           label="Status"
           options={["All", "Pending", "Received"]}
           value={statusFilter}
-          onChange={setStatusFilter}
+          onChange={handleStatusChange}
         />
       </FilterBar>
 
