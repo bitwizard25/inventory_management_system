@@ -79,10 +79,10 @@ export function Sidebar({
                     onNavigate(label)
                     onCloseMobileNav()
                   }}
-                  className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-3.5 text-[14px] transition-all duration-200 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                  className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-3.5 text-[14px] transition-all duration-200 ease-out active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                     active
                       ? "bg-[#09090B] text-white shadow-sm font-semibold"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-950 font-medium"
+                      : "text-slate-700 hover:bg-slate-900/[0.03] hover:text-slate-950 font-medium"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export function Sidebar({
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold tracking-tight whitespace-nowrap ${
                         active
                           ? "bg-amber-400 text-slate-950"
-                          : "bg-amber-500/10 text-amber-800 ring-1 ring-inset ring-amber-500/20"
+                          : "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20"
                       }`}
                     >
                       <AlertCircle size={11} />
@@ -116,7 +116,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onResetDemo}
-            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors hover:bg-slate-50 hover:text-slate-950 hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 ease-out active:scale-[0.98] hover:bg-slate-50 hover:text-slate-950 hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <RotateCcw size={14} />
             <span>Reset demo data</span>
@@ -126,7 +126,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={() => setProfileOpen((o) => !o)}
-              className="flex min-h-[48px] w-full items-center justify-between rounded-lg p-2 text-left hover:bg-slate-100/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              className="flex min-h-[48px] w-full items-center justify-between rounded-lg p-2 text-left hover:bg-slate-900/[0.03] active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="flex size-8 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white shrink-0">
@@ -141,7 +141,7 @@ export function Sidebar({
             </button>
 
             {profileOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-full rounded-xl border border-slate-200/80 bg-white p-4 shadow-xl text-xs space-y-2.5 z-50">
+              <div className="absolute bottom-full left-0 mb-2 w-full rounded-xl border border-slate-200/80 bg-white p-4 shadow-2xl ring-1 ring-slate-900/5 text-xs space-y-2.5 z-50">
                 <div>
                   <p className="font-bold text-slate-900">Gada Electronics</p>
                   <p className="font-mono text-xs text-slate-600">GST: 27AABCG4821K1Z5</p>

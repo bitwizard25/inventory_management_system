@@ -102,35 +102,35 @@ export function StockView({
                 <tr
                   key={item.id}
                   onClick={() => onSelect(item.id)}
-                  className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
+                  className="group cursor-pointer hover:bg-slate-900/[0.03] transition-colors"
                 >
-                  <td className="whitespace-nowrap px-5 py-4 font-mono text-xs tabular-nums text-slate-700 font-bold">
+                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
                     {item.sku}
                   </td>
-                  <td className="px-5 py-4">
-                    <p className="max-w-[240px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-black leading-snug">
+                  <td className="px-5 py-3.5">
+                    <p className="max-w-[240px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-slate-950 leading-snug">
                       {item.name}
                     </p>
-                    <p className="text-xs text-slate-600 mt-0.5">{item.category}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{item.category}</p>
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4">
+                  <td className="whitespace-nowrap px-5 py-3.5">
                     <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
                       {item.godown}
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4">
+                  <td className="whitespace-nowrap px-5 py-3.5">
                     <StockLevel item={item} />
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-right font-mono text-[14px] tabular-nums text-slate-700 font-medium">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[14px] tabular-nums text-slate-600 font-medium">
                     {formatINR(item.unitPrice)}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
                     {formatINR(item.quantity * item.unitPrice)}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4">
+                  <td className="whitespace-nowrap px-5 py-3.5">
                     <StatusBadge status={itemStatus(item)} />
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-right">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right">
                     <button
                       type="button"
                       onClick={(e) => {

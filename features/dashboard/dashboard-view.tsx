@@ -3,7 +3,16 @@
 import { Activity, ArrowDownLeft, ArrowUpRight, Boxes, ChevronRight, PackageSearch, ShoppingCart, SlidersHorizontal, Truck, User } from "lucide-react"
 import type { InventoryItem, StockMovement, View } from "@/types/inventory"
 import { formatINR, timeLabel } from "@/lib/format"
-import { tableActionClass } from "@/lib/constants"
+import {
+  tableActionCellClass,
+  tableBodyCellClass,
+  tableBodyRowClass,
+  tableFooterClass,
+  tableHeadCellClass,
+  tableHeadRowClass,
+  tableWrapperClass,
+} from "@/lib/constants"
+import { TableActionButton } from "@/components/ui/table-action-button"
 import { MetricCard } from "@/components/ui/metric"
 import { PageIntro } from "@/components/ui/page-intro"
 import { StatusBadge, itemStatus } from "@/components/ui/status-badge"
@@ -62,7 +71,7 @@ export function DashboardView({
                 key={days}
                 type="button"
                 onClick={() => onPeriodChange(days)}
-                className={`min-h-[36px] rounded-md px-3 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                className={`min-h-[36px] whitespace-nowrap rounded-md px-3 text-xs font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                   periodDays === days
                     ? "bg-[#09090B] text-white shadow-sm font-semibold"
                     : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
@@ -117,15 +126,15 @@ export function DashboardView({
         <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
             <div>
-              <h3 className="text-[15px] font-bold text-slate-900">Urgent Replenishment Alerts</h3>
-              <p className="mt-0.5 text-[13px] text-slate-600">
+              <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">Urgent Replenishment Alerts</h3>
+              <p className="mt-0.5 text-[13px] text-slate-500">
                 Products at or below safety reorder threshold requiring purchase orders
               </p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate("Stock")}
-              className="inline-flex min-h-[36px] items-center gap-1 rounded-md px-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              className="inline-flex min-h-[36px] items-center gap-1 rounded-md px-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 whitespace-nowrap"
             >
               <span>View catalog</span>
               <ChevronRight size={14} />
@@ -155,23 +164,23 @@ export function DashboardView({
                     <tr
                       key={item.id}
                       onClick={() => onSelect(item.id)}
-                      className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
+                      className="group cursor-pointer hover:bg-slate-900/[0.03] transition-colors"
                     >
-                      <td className="whitespace-nowrap px-5 py-4 font-mono text-xs tabular-nums text-slate-700 font-bold">
+                      <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
                         {item.sku}
                       </td>
-                      <td className="px-5 py-4">
-                        <p className="max-w-[210px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-black leading-snug">
+                      <td className="px-5 py-3.5">
+                        <p className="max-w-[210px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-slate-950 leading-snug">
                           {item.name}
                         </p>
-                        <p className="text-xs text-slate-600 mt-0.5">{item.category}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{item.category}</p>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-4">
+                      <td className="whitespace-nowrap px-5 py-3.5">
                         <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
                           {item.godown}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-4">
+                      <td className="whitespace-nowrap px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <span className="w-[56px] text-xs font-bold tabular-nums text-slate-900">
                             {item.quantity} / {item.minLevel}
@@ -190,10 +199,10 @@ export function DashboardView({
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-4">
+                      <td className="whitespace-nowrap px-5 py-3.5">
                         <StatusBadge status={status} />
                       </td>
-                      <td className="whitespace-nowrap px-5 py-4 text-right">
+                      <td className="whitespace-nowrap px-5 py-3.5 text-right">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -257,14 +266,14 @@ export function DashboardView({
         <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div>
-              <h3 className="text-[15px] font-bold text-slate-900">Recent Movements</h3>
-              <p className="mt-0.5 text-[13px] text-slate-600">Ledger entries with technician signatures</p>
+              <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">Recent Movements</h3>
+              <p className="mt-0.5 text-[13px] text-slate-500">Ledger entries with technician signatures</p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate("Stock")}
               aria-label="View activity"
-              className="flex size-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              className="flex size-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
             >
               <ChevronRight size={17} />
             </button>
@@ -278,7 +287,7 @@ export function DashboardView({
                   key={movement.id}
                   type="button"
                   onClick={() => onSelect(movement.itemId)}
-                  className="flex w-full items-start gap-3.5 px-6 py-3.5 text-left hover:bg-slate-50/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                  className="flex w-full items-start gap-3.5 px-6 py-3.5 text-left hover:bg-slate-900/[0.03] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                 >
                   <span
                     className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg ${
@@ -302,7 +311,7 @@ export function DashboardView({
                       </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
-                      <span className="font-mono font-medium">{movement.referenceId}</span>
+                      <span className="font-mono text-xs text-slate-600 font-medium">{movement.referenceId}</span>
                       <span>·</span>
                       {movement.performedBy && (
                         <span className="inline-flex items-center gap-1 font-medium text-slate-700">
@@ -321,7 +330,7 @@ export function DashboardView({
           <button
             type="button"
             onClick={() => onNavigate("Stock")}
-            className="w-full border-t border-slate-100 px-6 py-3.5 text-left text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            className="w-full border-t border-slate-100 px-6 py-3.5 text-left text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-900/[0.03] active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             Open complete audit ledger →
           </button>

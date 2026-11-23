@@ -49,9 +49,9 @@ export function Header({
         </button>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-[-0.025em] text-slate-900">{view}</h1>
+            <h1 className="text-lg font-bold tracking-[-0.025em] leading-tight text-slate-900 whitespace-nowrap">{view}</h1>
             <ChevronRight className="hidden text-slate-400 sm:block" size={15} />
-            <span className="hidden text-[13px] font-medium text-slate-600 sm:block">
+            <span className="hidden text-[13px] font-medium text-slate-500 sm:block">
               {viewDescriptions[view]}
             </span>
           </div>
@@ -78,7 +78,7 @@ export function Header({
             aria-label="Notifications"
             aria-expanded={notificationsOpen}
             onClick={() => setNotificationsOpen((open) => !open)}
-            className="relative flex size-11 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-500 hover:text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            className="relative flex size-11 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-500 hover:text-slate-950 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <Bell size={18} />
             {lowStock.length > 0 && (
@@ -89,11 +89,11 @@ export function Header({
           {notificationsOpen && (
             <section
               aria-label="Low stock notifications"
-              className="absolute right-0 top-14 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xl"
+              className="absolute right-0 top-14 z-50 w-[min(360px,calc(100vw-2rem))] rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xl ring-1 ring-slate-900/5"
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h2 className="text-[14px] font-bold text-slate-900">Low Stock Alerts</h2>
-                <span className="rounded-full bg-amber-500/10 text-amber-800 ring-1 ring-inset ring-amber-500/20 px-2.5 py-0.5 text-xs font-bold">
+                <span className="rounded-full bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20 px-2.5 py-0.5 text-xs font-bold">
                   {lowStock.length} items
                 </span>
               </div>
@@ -107,15 +107,15 @@ export function Header({
                           setNotificationsOpen(false)
                           onOpenStockItem(item.id)
                         }}
-                        className="flex min-h-[44px] w-full items-start justify-between py-2.5 text-left hover:bg-slate-50 px-2.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                        className="flex min-h-[44px] w-full items-start justify-between py-2.5 text-left hover:bg-slate-900/[0.03] px-2.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                       >
                         <div className="min-w-0 pr-2">
                           <p className="truncate text-[13px] font-semibold text-slate-900">{item.name}</p>
-                          <p className="mt-0.5 font-mono text-xs text-slate-500">
+                          <p className="mt-0.5 font-mono text-xs text-slate-600">
                             {item.sku} · {item.godown}
                           </p>
                         </div>
-                        <span className="shrink-0 font-mono text-xs font-bold text-rose-600">
+                        <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-rose-600">
                           {item.quantity} / {item.minLevel}
                         </span>
                       </button>

@@ -141,7 +141,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
               key={label}
               type="button"
               onClick={() => setTabClean(label)}
-              className={`min-h-[44px] rounded-lg px-4 py-2 text-[14px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+              className={`min-h-[44px] whitespace-nowrap rounded-lg px-4 py-2 text-[14px] font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                 tab === label
                   ? "bg-[#09090B] text-white shadow-sm font-semibold"
                   : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
@@ -176,14 +176,14 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
       {/* 3. Recharts Analytics Panel: rounded-xl container */}
       <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="mb-4">
-          <h3 className="text-[15px] font-bold text-slate-900">
+          <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">
             {tab === "Stock valuation"
               ? "Valuation by Product Category"
               : tab === "Sales & GST revenue"
               ? "Gross Revenue by Client"
               : "Procurement Spend by Vendor"}
           </h3>
-          <p className="mt-0.5 text-[13px] text-slate-600">Live breakdown calculated in Indian Rupees (₹)</p>
+          <p className="mt-0.5 text-[13px] text-slate-500">Live breakdown calculated in Indian Rupees (₹)</p>
         </div>
 
         <div className="h-64 w-full">
@@ -201,12 +201,16 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                 <Tooltip
                   formatter={(val: any) => [formatINR(Number(val ?? 0)), "Value"]}
                   contentStyle={{
+                    backgroundColor: "#09090B",
                     borderRadius: "8px",
-                    border: "1px solid #CBD5E1",
-                    backgroundColor: "#FFFFFF",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
                     fontSize: "13px",
-                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+                    padding: "8px 12px",
                   }}
+                  itemStyle={{ color: "#F8FAFC" }}
+                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
+                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
                 />
                 <Bar dataKey="value" fill="#09090B" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -223,11 +227,15 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                 <Tooltip
                   formatter={(val: any) => [formatINR(Number(val ?? 0)), "Revenue"]}
                   contentStyle={{
+                    backgroundColor: "#09090B",
                     borderRadius: "8px",
-                    border: "1px solid #CBD5E1",
-                    backgroundColor: "#FFFFFF",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
                     fontSize: "13px",
+                    padding: "8px 12px",
                   }}
+                  itemStyle={{ color: "#F8FAFC" }}
+                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#09090B" fill="#F1F5F9" strokeWidth={2.5} />
               </AreaChart>
@@ -244,14 +252,19 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                 <Tooltip
                   formatter={(val: any) => [formatINR(Number(val ?? 0))]}
                   contentStyle={{
+                    backgroundColor: "#09090B",
                     borderRadius: "8px",
-                    border: "1px solid #CBD5E1",
-                    backgroundColor: "#FFFFFF",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
                     fontSize: "13px",
+                    padding: "8px 12px",
                   }}
+                  itemStyle={{ color: "#F8FAFC" }}
+                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
+                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
                 />
                 <Bar dataKey="received" stackId="a" fill="#09090B" radius={[0, 0, 0, 0]} name="Received" />
-                <Bar dataKey="pending" stackId="a" fill="#94A3B8" radius={[4, 4, 0, 0]} name="Pending" />
+                <Bar dataKey="pending" stackId="a" fill="#64748B" radius={[4, 4, 0, 0]} name="Pending" />
               </BarChart>
             )}
           </ResponsiveContainer>
@@ -363,12 +376,12 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-700 font-bold">
+                <tr key={idx} className="hover:bg-slate-900/[0.03] transition-colors">
+                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
                     {row[0]}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-[14px] font-semibold text-slate-900">{row[1]}</td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-600">{row[2]}</td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-500">{row[2]}</td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-700">
                     {tab === "Stock valuation" ? (
                       <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
@@ -378,10 +391,10 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
                       row[3]
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-700">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-600 font-medium">
                     {row[4]}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-700">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-600 font-medium">
                     {typeof row[5] === "number" ? formatINR(row[5]) : row[5]}
                   </td>
                   <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] font-bold tabular-nums text-slate-900">

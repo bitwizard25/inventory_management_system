@@ -39,13 +39,13 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Tax invoice details"
-        className="flex h-full w-full max-w-[580px] flex-col border-l border-slate-200/80 bg-white shadow-2xl animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none print:static print:max-w-none print:shadow-none print:border-none"
+        className="flex h-full w-full max-w-[580px] flex-col border-l border-slate-200/80 bg-white shadow-2xl ring-1 ring-slate-900/5 animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none print:static print:max-w-none print:shadow-none print:border-none"
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5 print:hidden">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Tax Invoice & Dispatch Note</p>
-            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">Invoice {sale.id}</h2>
-            <p className="mt-1 text-[13px] text-slate-600">
+            <h2 className="mt-1 text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900">Invoice {sale.id}</h2>
+            <p className="mt-1 text-[13px] text-slate-500">
               {sale.customer} · {dateLabel(sale.date)}
             </p>
           </div>
@@ -53,7 +53,7 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
             type="button"
             onClick={onClose}
             aria-label="Close invoice"
-            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 transition-colors"
+            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <X size={20} />
           </button>
@@ -63,8 +63,8 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
           <div className="invoice-content rounded-xl border border-slate-200/80 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
             <div className="flex items-start justify-between border-b border-slate-200 pb-5">
               <div>
-                <p className="text-xl font-bold tracking-tight text-slate-900">{SELLER_METADATA.name}</p>
-                <p className="mt-0.5 text-xs text-slate-600">{SELLER_METADATA.tagline}</p>
+                <p className="text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900">{SELLER_METADATA.name}</p>
+                <p className="mt-0.5 text-xs text-slate-500">{SELLER_METADATA.tagline}</p>
                 <p className="text-xs text-slate-600 mt-1">{SELLER_METADATA.address}</p>
                 <p className="text-xs text-slate-700 mt-0.5 font-medium">
                   GSTIN: <span className="font-mono font-bold text-slate-900">{SELLER_METADATA.gstin}</span> · Ph: {SELLER_METADATA.phone}
@@ -81,7 +81,7 @@ export function InvoiceDrawer({ saleId, onClose, onPaid }: InvoiceDrawerProps) {
                   <>
                     <p className="text-xs text-slate-600">{customerObj.city}</p>
                     <p className="text-xs text-slate-600">Ph: {customerObj.phone}</p>
-                    <p className="mt-0.5 font-mono text-xs font-semibold text-slate-700">
+                    <p className="mt-0.5 font-mono text-xs font-medium text-slate-600">
                       GSTIN: {customerObj.gstin}
                     </p>
                   </>

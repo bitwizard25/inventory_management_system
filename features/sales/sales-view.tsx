@@ -87,33 +87,33 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
                 <tr
                   key={sale.id}
                   onClick={() => onSelect(sale.id)}
-                  className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
+                  className="group cursor-pointer hover:bg-slate-900/[0.03] transition-colors"
                 >
-                  <td className="whitespace-nowrap px-5 py-4 font-mono text-xs tabular-nums text-slate-700 font-bold">
+                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
                     {sale.id}
                   </td>
-                  <td className="px-5 py-4 text-[14px] font-semibold text-slate-900 group-hover:text-black">
+                  <td className="px-5 py-3.5 text-[14px] font-semibold text-slate-900 group-hover:text-slate-950">
                     {sale.customer}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3.5">
                     <p className="text-[14px] font-medium text-slate-800">
                       {sale.items.length} {sale.items.length === 1 ? "line item" : "line items"}
                     </p>
-                    <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-600">
+                    <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-500">
                       {sale.items[0]?.itemName ?? "—"}
                       {sale.items.length > 1 ? ` + ${sale.items.length - 1} more` : ""}
                     </p>
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-[14px] tabular-nums text-slate-600 font-medium">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-[14px] tabular-nums text-slate-600 font-medium">
                     {dateLabel(sale.date)}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
                     {formatINR(sale.totalAmount)}
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4">
+                  <td className="whitespace-nowrap px-5 py-3.5">
                     <StatusBadge status={sale.status} />
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-right">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right">
                     {sale.status === "Confirmed" ? (
                       <button
                         type="button"
@@ -121,7 +121,7 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
                           e.stopPropagation()
                           onPaid(sale.id)
                         }}
-                        className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md bg-[#09090B] px-3.5 text-xs font-semibold text-white shadow-sm hover:bg-[#27272A] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+                        className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md bg-[#09090B] px-3.5 text-xs font-semibold text-white shadow-sm hover:bg-[#27272A] active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 whitespace-nowrap"
                       >
                         <Check size={12} />
                         <span>Mark paid</span>

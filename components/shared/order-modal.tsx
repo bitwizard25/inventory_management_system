@@ -143,12 +143,12 @@ export function OrderModal({
           <div className="flex items-center justify-between mb-3.5">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">Order Line Items</h3>
-              <p className="text-[13px] text-slate-600">Select items from live catalog</p>
+              <p className="text-[13px] text-slate-500">Select items from live catalog</p>
             </div>
             <button
               type="button"
               onClick={() => setLines((current) => [...current, { itemId: "", quantity: 1 }])}
-              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 hover:text-slate-950 hover:border-slate-500 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 hover:text-slate-950 hover:border-slate-500 active:scale-[0.98] transition-all duration-200 ease-out shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 whitespace-nowrap"
             >
               <Plus size={14} /> Add line item
             </button>

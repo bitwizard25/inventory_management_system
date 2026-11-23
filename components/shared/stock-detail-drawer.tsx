@@ -34,14 +34,14 @@ export function StockDetailDrawer({ itemId, onClose, onAdjust }: StockDetailDraw
         role="dialog"
         aria-modal="true"
         aria-label="Stock item details"
-        className="flex h-full w-full max-w-[560px] flex-col border-l border-slate-200/80 bg-white shadow-2xl animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none"
+        className="flex h-full w-full max-w-[560px] flex-col border-l border-slate-200/80 bg-white shadow-2xl ring-1 ring-slate-900/5 animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none"
       >
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <p className="font-mono text-xs tabular-nums text-slate-700 font-bold">{item.sku}</p>
-            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">{item.name}</h2>
-            <p className="mt-1 text-[13px] text-slate-600">
+            <p className="font-mono text-xs tabular-nums text-slate-600 font-medium">{item.sku}</p>
+            <h2 className="mt-1 text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900">{item.name}</h2>
+            <p className="mt-1 text-[13px] text-slate-500">
               {item.godown} · {item.category}
             </p>
           </div>
@@ -49,7 +49,7 @@ export function StockDetailDrawer({ itemId, onClose, onAdjust }: StockDetailDraw
             type="button"
             onClick={onClose}
             aria-label="Close details"
-            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 transition-colors"
+            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <X size={20} />
           </button>
@@ -66,8 +66,8 @@ export function StockDetailDrawer({ itemId, onClose, onAdjust }: StockDetailDraw
 
           {/* Quick Adjustment Card: rounded-xl container */}
           <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <h3 className="text-[15px] font-bold text-slate-900">Physical Audit Adjustment</h3>
-            <p className="mt-0.5 text-[13px] text-slate-600">Reconcile counts or record physical damage</p>
+            <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">Physical Audit Adjustment</h3>
+            <p className="mt-0.5 text-[13px] text-slate-500">Reconcile counts or record physical damage</p>
             <div className="mt-4 grid grid-cols-[130px_1fr] gap-3">
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Action
@@ -75,7 +75,7 @@ export function StockDetailDrawer({ itemId, onClose, onAdjust }: StockDetailDraw
                   <button
                     type="button"
                     onClick={() => setDirection("Add")}
-                    className={`flex-1 rounded-md py-1.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                    className={`flex-1 rounded-md py-1.5 text-xs font-bold transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                       direction === "Add"
                         ? "bg-white text-slate-900 shadow-sm"
                         : "text-slate-600 hover:text-slate-950"
@@ -86,7 +86,7 @@ export function StockDetailDrawer({ itemId, onClose, onAdjust }: StockDetailDraw
                   <button
                     type="button"
                     onClick={() => setDirection("Remove")}
-                    className={`flex-1 rounded-md py-1.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                    className={`flex-1 rounded-md py-1.5 text-xs font-bold transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                       direction === "Remove"
                         ? "bg-white text-slate-900 shadow-sm"
                         : "text-slate-600 hover:text-slate-950"

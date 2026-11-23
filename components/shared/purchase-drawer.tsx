@@ -38,19 +38,19 @@ export function PurchaseDrawer({ purchaseId, onClose, onReceive }: PurchaseDrawe
         role="dialog"
         aria-modal="true"
         aria-label="Purchase order details"
-        className="flex h-full w-full max-w-[560px] flex-col border-l border-slate-200/80 bg-white shadow-2xl animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none"
+        className="flex h-full w-full max-w-[560px] flex-col border-l border-slate-200/80 bg-white shadow-2xl ring-1 ring-slate-900/5 animate-in slide-in-from-right duration-200 ease-out motion-reduce:transition-none"
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <p className="font-mono text-xs tabular-nums text-slate-700 font-bold">{po.id}</p>
-            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">Purchase Order</h2>
-            <p className="mt-1 text-[13px] text-slate-600">{po.supplier}</p>
+            <p className="font-mono text-xs tabular-nums text-slate-600 font-medium">{po.id}</p>
+            <h2 className="mt-1 text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900">Purchase Order</h2>
+            <p className="mt-1 text-[13px] text-slate-500">{po.supplier}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close purchase order"
-            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 transition-colors"
+            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <X size={20} />
           </button>
@@ -73,18 +73,18 @@ export function PurchaseDrawer({ purchaseId, onClose, onReceive }: PurchaseDrawe
             <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 text-[13px] text-slate-700 space-y-1">
               <p className="font-bold text-slate-900">Distributor Information</p>
               <p>City: {supplierObj.city} · Ph: {supplierObj.phone}</p>
-              <p className="font-mono text-xs font-semibold text-slate-800">GSTIN: {supplierObj.gstin}</p>
+              <p className="font-mono text-xs font-medium text-slate-600">GSTIN: {supplierObj.gstin}</p>
             </div>
           )}
 
           <div>
-            <h3 className="text-[15px] font-bold text-slate-900 mb-3">Line items ({po.items.length})</h3>
+            <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900 mb-3">Line items ({po.items.length})</h3>
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
               {po.items.map((line) => (
-                <div key={line.itemId} className="flex items-center justify-between p-4 hover:bg-slate-50/60 transition-colors">
+                <div key={line.itemId} className="flex items-center justify-between p-4 hover:bg-slate-900/[0.03] transition-colors">
                   <div>
                     <p className="text-[14px] font-semibold text-slate-900">{line.itemName}</p>
-                    <p className="mt-0.5 font-mono text-xs text-slate-500">
+                    <p className="mt-0.5 font-mono text-xs text-slate-600">
                       {line.sku} · {line.quantity} units @ {formatINR(line.unitPrice)}
                     </p>
                   </div>
