@@ -1,5 +1,10 @@
-import { InventoryApp } from '@/components/inventory-app'
+import { InventoryProvider } from "@/hooks/use-inventory"
+import { AppShell } from "@/components/layout/app-shell"
 
 export default function Page() {
-  return <InventoryApp />
+  return (
+    <InventoryProvider>
+      <AppShell />
+    </InventoryProvider>
+  )
 }
