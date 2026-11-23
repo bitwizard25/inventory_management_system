@@ -61,7 +61,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 font-sans antialiased">
+    <div className="min-h-screen bg-[#F6F7F9] text-slate-900 font-sans antialiased">
       <Toaster position="top-right" richColors closeButton />
 
       <Sidebar
@@ -73,7 +73,7 @@ export function AppShell() {
         onResetDemo={resetDemoData}
       />
 
-      <div className="md:pl-[240px]">
+      <div className="md:pl-[250px]">
         <Header
           view={view}
           search={search}
@@ -85,7 +85,8 @@ export function AppShell() {
           onOpenStockItem={openStockItem}
         />
 
-        <main className="mx-auto max-w-[1600px] px-5 py-7 md:px-8">
+        {/* Locked structural frame across all views: uniform max-w-7xl, consistent px-6 py-6 md:px-8 space-y-6 */}
+        <main className="mx-auto max-w-7xl px-6 py-6 md:px-8 space-y-6">
           {view === "Dashboard" && (
             <DashboardView
               items={items}

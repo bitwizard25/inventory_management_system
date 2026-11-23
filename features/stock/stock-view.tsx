@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { godowns } from "@/lib/constants"
+import { ChevronRight } from "lucide-react"
+import { godowns, tableActionClass } from "@/lib/constants"
 import { formatINR } from "@/lib/format"
 import type { Godown, InventoryItem, StockMovement } from "@/types/inventory"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -48,18 +49,20 @@ export function StockView({
 
   return (
     <div className="space-y-6">
+      {/* 1. Page Title & Action: Symmetrical height and spacing */}
       <PageIntro
-        title="Live Stock"
-        description="Real-time warehouse quantities, reorder thresholds, and valuations."
+        title="Warehouse Inventory"
+        description="Physical stock levels across Showroom, Goregaon Godown, and Andheri Depot."
       />
 
+      {/* 2. Unified Filter Toolbar */}
       <FilterBar
         search={search}
         onSearch={onSearch}
-        placeholder="Search by SKU, product name, or category..."
+        placeholder="Filter by SKU, product name, or category..."
         summary={
           isFilterActive
-            ? `Showing ${filtered.length} of ${items.length} items · ${statusFilter} · ${godownFilter}`
+            ? `Showing ${filtered.length} of ${items.length} items (${statusFilter} · ${godownFilter})`
             : undefined
         }
         onClear={clearFilters}
@@ -78,65 +81,66 @@ export function StockView({
         />
       </FilterBar>
 
-      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      {/* 3. Primary Data Table: rounded-xl container */}
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[950px] text-left">
             <thead className="bg-slate-50/80">
-              <tr className="border-b border-[#E5E7EB] text-xs font-medium text-slate-500">
-                <th className="px-5 py-3 whitespace-nowrap">SKU</th>
-                <th className="px-4 py-3 whitespace-nowrap">Product & Category</th>
-                <th className="px-4 py-3 whitespace-nowrap">Godown</th>
-                <th className="px-4 py-3 whitespace-nowrap">Stock Level</th>
-                <th className="px-4 py-3 text-right whitespace-nowrap">Unit Price</th>
-                <th className="px-4 py-3 text-right whitespace-nowrap">Total Value</th>
-                <th className="px-4 py-3 whitespace-nowrap">Status</th>
-                <th className="px-5 py-3 text-right whitespace-nowrap">Actions</th>
+              <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <th className="px-5 py-3.5 whitespace-nowrap">SKU</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Product & Category</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Godown</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Stock Level</th>
+                <th className="px-5 py-3.5 text-right whitespace-nowrap">Unit Price</th>
+                <th className="px-5 py-3.5 text-right whitespace-nowrap">Valuation</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                <th className="px-5 py-3.5 text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5E7EB]">
+            <tbody className="divide-y divide-slate-100">
               {filtered.map((item) => (
                 <tr
                   key={item.id}
                   onClick={() => onSelect(item.id)}
-                  className="cursor-pointer hover:bg-slate-50/60 transition-colors"
+                  className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
                 >
-                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
+                  <td className="whitespace-nowrap px-5 py-4 font-mono text-xs tabular-nums text-slate-700 font-bold">
                     {item.sku}
                   </td>
-                  <td className="px-4 py-3.5">
-                    <p className="max-w-[220px] truncate text-[13px] font-medium text-slate-900">
+                  <td className="px-5 py-4">
+                    <p className="max-w-[240px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-black leading-snug">
                       {item.name}
                     </p>
-                    <p className="text-xs text-slate-400">{item.category}</p>
+                    <p className="text-xs text-slate-600 mt-0.5">{item.category}</p>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5">
-                    <span className="rounded-md border border-[#E5E7EB] bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  <td className="whitespace-nowrap px-5 py-4">
+                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
                       {item.godown}
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5">
+                  <td className="whitespace-nowrap px-5 py-4">
                     <StockLevel item={item} />
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 text-right text-[13px] font-medium tabular-nums text-slate-800">
+                  <td className="whitespace-nowrap px-5 py-4 text-right font-mono text-[14px] tabular-nums text-slate-700 font-medium">
                     {formatINR(item.unitPrice)}
-                    <span className="text-xs font-normal text-slate-400"> / {item.unit}</span>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 text-right text-[13px] font-semibold tabular-nums text-slate-900">
+                  <td className="whitespace-nowrap px-5 py-4 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
                     {formatINR(item.quantity * item.unitPrice)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5">
+                  <td className="whitespace-nowrap px-5 py-4">
                     <StatusBadge status={itemStatus(item)} />
                   </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right">
+                  <td className="whitespace-nowrap px-5 py-4 text-right">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
                         onSelect(item.id)
                       }}
-                      className="rounded-md border border-[#E5E7EB] bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                      className={tableActionClass}
                     >
-                      Ledger
+                      <span>Details</span>
+                      <ChevronRight size={13} className="text-slate-500" />
                     </button>
                   </td>
                 </tr>
@@ -146,15 +150,20 @@ export function StockView({
 
           {!filtered.length && (
             <EmptyState
-              message="No stock items found"
-              detail="Try changing your search keywords or active filters."
-              clear={isFilterActive ? clearFilters : undefined}
+              message="No inventory items match your criteria"
+              detail="Try selecting a different godown, status filter, or clearing search."
+              clear={clearFilters}
             />
           )}
         </div>
 
-        <div className="border-t border-[#E5E7EB] px-5 py-3 text-xs text-slate-500">
-          Showing {filtered.length} of {items.length} SKUs across all warehouses · {movements.length} logged audit entries
+        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-[14px] text-slate-600 bg-slate-50/40">
+          <span>
+            Showing {filtered.length} of {items.length} SKUs
+          </span>
+          <span className="font-mono tabular-nums font-bold text-slate-900">
+            Total Valuation: {formatINR(filtered.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0))}
+          </span>
         </div>
       </div>
     </div>

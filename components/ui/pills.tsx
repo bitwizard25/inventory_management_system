@@ -12,23 +12,29 @@ export function Pills<T extends string>({
   label?: string
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1" role="group">
-      {label && <span className="px-2 text-xs font-medium text-slate-400">{label}:</span>}
-      {options.map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          aria-pressed={option === value}
-          className={`whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-            option === value
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
-          }`}
-        >
-          {option}
-        </button>
-      ))}
+    <div
+      className="inline-flex min-h-[44px] flex-wrap items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-100/70 p-1 select-none"
+      role="group"
+    >
+      {label && <span className="px-2 text-xs font-semibold uppercase tracking-wider text-slate-600">{label}:</span>}
+      {options.map((option) => {
+        const active = option === value
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            aria-pressed={active}
+            className={`min-h-[36px] whitespace-nowrap rounded-md px-3 text-[13px] font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+              active
+                ? "bg-[#09090B] text-white shadow-sm font-semibold"
+                : "text-slate-700 hover:bg-white/80 hover:text-slate-950"
+            }`}
+          >
+            {option}
+          </button>
+        )
+      })}
     </div>
   )
 }

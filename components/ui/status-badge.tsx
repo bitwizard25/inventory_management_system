@@ -25,26 +25,27 @@ export function statusDot(status: string): string {
 
 export function statusBadgeClass(status: string): string {
   if (status === "Paid" || status === "Received" || status === "In stock") {
-    return "bg-emerald-50 text-emerald-700 border-emerald-100"
+    return "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20"
   }
   if (status === "Draft" || status === "Pending" || status === "Low stock") {
-    return "bg-amber-50 text-amber-700 border-amber-100"
+    return "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20"
   }
   if (status === "Out of stock") {
-    return "bg-rose-50 text-rose-700 border-rose-100"
+    return "bg-rose-500/10 text-rose-700 ring-1 ring-inset ring-rose-500/20"
   }
-  return "bg-slate-50 text-slate-600 border-slate-200"
+  return "bg-slate-500/10 text-slate-700 ring-1 ring-inset ring-slate-500/20"
 }
 
+// Non-clickable status badges: rounded-full pills ONLY
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${statusBadgeClass(
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold select-none ${statusBadgeClass(
         status
       )}`}
     >
       <span className={`size-1.5 rounded-full shrink-0 ${statusDot(status)}`} />
-      {status}
+      <span>{status}</span>
     </span>
   )
 }

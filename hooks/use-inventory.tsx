@@ -16,16 +16,36 @@ import type {
   InventoryState,
   LineInput,
   OrderLine,
+  PerformedBy,
+  PurchaseOrder,
+  SaleOrder,
   StockMovement,
 } from "@/types/inventory"
 import { seed, STORAGE_KEY } from "@/data/seed"
 
 type InventoryContextValue = InventoryState & {
-  createSale: (customer: string, lines: LineInput[]) => boolean
-  markPurchaseReceived: (purchaseId: string) => void
-  createPurchaseOrder: (supplier: string, lines: LineInput[], received?: boolean) => boolean
-  adjustStock: (itemId: string, delta: number, note: string) => boolean
-  transferStock: (itemId: string, fromGodown: Godown, toGodown: Godown, qty: number, note: string) => boolean
+  createSale: (customer: string, lines: LineInput[], customerId?: string) => boolean
+  markPurchaseReceived: (purchaseId: string, performedBy?: PerformedBy) => void
+  createPurchaseOrder: (
+    supplier: string,
+    lines: LineInput[],
+    received?: boolean,
+    supplierId?: string
+  ) => boolean
+  adjustStock: (
+    itemId: string,
+    delta: number,
+    note: string,
+    performedBy?: PerformedBy
+  ) => boolean
+  transferStock: (
+    itemId: string,
+    fromGodown: Godown,
+    toGodown: Godown,
+    qty: number,
+    note: string,
+    performedBy?: PerformedBy
+  ) => boolean
   markSalePaid: (saleId: string) => void
   resetDemoData: () => void
 }
@@ -49,48 +69,51 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<InventoryState>(seed)
   const [ready, setReady] = useState(false)
 
+  // Safe schema fallback on hydration
   useEffect(() => {
     try {
       const value = localStorage.getItem(STORAGE_KEY)
       if (value) {
-        const saved = JSON.parse(value) as InventoryState
+        const parsed = JSON.parse(value) as Partial<InventoryState>
+        const validItems = Array.isArray(parsed.items) && parsed.items.length > 0 ? parsed.items : seed.items
+        const validSales = Array.isArray(parsed.sales) ? parsed.sales : seed.sales
+        const validPurchases = Array.isArray(parsed.purchases) ? parsed.purchases : seed.purchases
+        const validMovements = Array.isArray(parsed.movements) ? parsed.movements : seed.movements
+        const validCustomers = Array.isArray(parsed.customers) && parsed.customers.length > 0 ? parsed.customers : seed.customers
+        const validSuppliers = Array.isArray(parsed.suppliers) && parsed.suppliers.length > 0 ? parsed.suppliers : seed.suppliers
+
         setState({
-          ...seed,
-          ...saved,
-          items: [
-            ...saved.items,
-            ...seed.items.filter((item) => !saved.items.some((entry) => entry.id === item.id)),
-          ],
-          sales: [
-            ...saved.sales,
-            ...seed.sales.filter((sale) => !saved.sales.some((entry) => entry.id === sale.id)),
-          ],
-          purchases: [
-            ...saved.purchases,
-            ...seed.purchases.filter((purchase) => !saved.purchases.some((entry) => entry.id === purchase.id)),
-          ],
-          movements: [
-            ...saved.movements,
-            ...seed.movements.filter((movement) => !saved.movements.some((entry) => entry.id === movement.id)),
-          ],
+          items: validItems,
+          customers: validCustomers,
+          suppliers: validSuppliers,
+          sales: validSales,
+          purchases: validPurchases,
+          movements: validMovements,
         })
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY)
+      setState(seed)
     }
     setReady(true)
   }, [])
 
   useEffect(() => {
-    if (ready) localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    if (ready) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+      } catch (err) {
+        console.error("Failed to save state to localStorage", err)
+      }
+    }
   }, [state, ready])
 
   const createSale = useCallback(
-    (customer: string, inputs: LineInput[]) => {
+    (customerName: string, inputs: LineInput[], customerId?: string) => {
       let created = false
       setState((current) => {
         if (
-          !customer.trim() ||
+          !customerName.trim() ||
           !inputs.length ||
           inputs.some(
             (input) =>
@@ -109,22 +132,38 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         }
 
         const lines = toOrderLines(current.items, inputs)
-        const id = `SO-${Math.max(1040, ...current.sales.map((sale) => Number(sale.id.slice(3)))) + 1}`
+        const subtotal = lines.reduce((sum, entry) => sum + entry.quantity * entry.unitPrice, 0)
+        const gstRate = 18
+        const taxAmount = Math.round(subtotal * (gstRate / 100))
+        const totalAmount = subtotal + taxAmount
+
+        const existingNumericIds = current.sales
+          .map((s) => Number(s.id.replace(/\D/g, "")))
+          .filter(Boolean)
+        const nextIdNumber = Math.max(1040, ...existingNumericIds) + 1
+        const id = `SO-${nextIdNumber}`
         const timestamp = new Date().toISOString()
+        const date = timestamp.slice(0, 10)
+
+        const matchedCustomer =
+          current.customers.find((c) => c.id === customerId) ||
+          current.customers.find((c) => c.name.toLowerCase() === customerName.trim().toLowerCase())
+
         const stock = current.items.map((item) => {
           const qty = inputs
             .filter((entry) => entry.itemId === item.id)
             .reduce((sum, entry) => sum + entry.quantity, 0)
           return qty ? { ...item, quantity: item.quantity - qty } : item
         })
-        const movements: StockMovement[] = inputs.map((input, index) => {
+
+        const newMovements: StockMovement[] = inputs.map((input, index) => {
           const item = current.items.find((entry) => entry.id === input.itemId)!
           const priorUnits = inputs
             .slice(0, index + 1)
             .filter((entry) => entry.itemId === item.id)
             .reduce((sum, entry) => sum + entry.quantity, 0)
           return {
-            id: `${Date.now()}-${index}`,
+            id: `m-sale-${Date.now()}-${index}`,
             itemId: item.id,
             itemName: item.name,
             sku: item.sku,
@@ -133,249 +172,331 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
             resultingQty: item.quantity - priorUnits,
             referenceId: id,
             timestamp,
-            note: "Sale confirmed",
+            note: `Dispatched to ${customerName.trim()} · Invoice ${id}`,
+            performedBy: "Bagha",
+            fromGodown: item.godown,
           }
         })
+
+        const newSale: SaleOrder = {
+          id,
+          customerId: matchedCustomer?.id,
+          customer: customerName.trim(),
+          items: lines,
+          subtotal,
+          gstRate,
+          taxAmount,
+          totalAmount,
+          date,
+          createdAt: timestamp,
+          status: "Confirmed",
+        }
 
         created = true
         return {
           ...current,
           items: stock,
-          sales: [
-            {
-              id,
-              customer: customer.trim(),
-              items: lines,
-              totalAmount: lines.reduce((sum, entry) => sum + entry.quantity * entry.unitPrice, 0),
-              date: timestamp.slice(0, 10),
-              status: "Confirmed",
-            },
-            ...current.sales,
-          ],
-          movements: [...movements, ...current.movements],
+          sales: [newSale, ...current.sales],
+          movements: [...newMovements, ...current.movements],
         }
       })
 
       if (created) {
         toast.success(
-          `Sale confirmed · ${inputs
-            .map((input) => `-${input.quantity} ${state.items.find((item) => item.id === input.itemId)?.name ?? "units"}`)
+          `Sale confirmed · Stock updated for ${inputs
+            .map((input) => `${input.quantity}x ${state.items.find((item) => item.id === input.itemId)?.name ?? "item"}`)
             .join(", ")}`
         )
       } else {
-        toast.error("Sale could not be created. Check available stock and quantities.")
+        toast.error("Sale could not be created. Check stock availability.")
       }
       return created
     },
     [state]
   )
 
-  const markPurchaseReceived = useCallback((id: string) => {
-    let message = ""
-    setState((current) => {
-      const po = current.purchases.find((entry) => entry.id === id)
-      if (!po || po.status === "Received") return current
-      const timestamp = new Date().toISOString()
-      const items = current.items.map((item) => {
-        const line = po.items.find((entry) => entry.itemId === item.id)
-        return line ? { ...item, quantity: item.quantity + line.quantity } : item
-      })
-      const movements: StockMovement[] = po.items.map((entry, index) => ({
-        id: `${Date.now()}-${index}`,
-        itemId: entry.itemId,
-        itemName: entry.itemName,
-        sku: entry.sku,
-        type: "PURCHASE",
-        delta: entry.quantity,
-        resultingQty: (current.items.find((item) => item.id === entry.itemId)?.quantity ?? 0) + entry.quantity,
-        referenceId: po.id,
-        timestamp,
-        note: "Purchase order received",
-      }))
-      const units = po.items.reduce((sum, entry) => sum + entry.quantity, 0)
-      message = `${po.id} marked received · +${units} units added to stock`
-      return {
-        ...current,
-        items,
-        purchases: current.purchases.map((entry) => (entry.id === id ? { ...entry, status: "Received" } : entry)),
-        movements: [...movements, ...current.movements],
-      }
-    })
-    if (message) toast.success(message)
-  }, [])
+  const markPurchaseReceived = useCallback(
+    (id: string, performedBy: PerformedBy = "Nattu Kaka") => {
+      let message = ""
+      setState((current) => {
+        const po = current.purchases.find((entry) => entry.id === id)
+        if (!po || po.status === "Received") return current
+        const timestamp = new Date().toISOString()
 
-  const createPurchaseOrder = useCallback((supplier: string, inputs: LineInput[], received = false) => {
-    let success = false
-    setState((current) => {
-      if (
-        !supplier.trim() ||
-        !inputs.length ||
-        new Set(inputs.map((input) => input.itemId)).size !== inputs.length ||
-        inputs.some(
-          (input) =>
-            !current.items.some((item) => item.id === input.itemId) ||
-            !Number.isInteger(input.quantity) ||
-            input.quantity < 1 ||
-            (input.unitPrice ?? current.items.find((item) => item.id === input.itemId)!.unitPrice) <= 0
-        )
-      ) {
-        return current
-      }
+        const items = current.items.map((item) => {
+          const line = po.items.find((entry) => entry.itemId === item.id)
+          return line ? { ...item, quantity: item.quantity + line.quantity } : item
+        })
 
-      const lines = toOrderLines(current.items, inputs)
-      const id = `PO-${Math.max(2017, ...current.purchases.map((purchase) => Number(purchase.id.slice(3)))) + 1}`
-      const timestamp = new Date().toISOString()
-      const newItems = received
-        ? current.items.map((item) => {
-            const entry = lines.find((line) => line.itemId === item.id)
-            return entry ? { ...item, quantity: item.quantity + entry.quantity } : item
-          })
-        : current.items
-      const movements: StockMovement[] = received
-        ? lines.map((entry, index) => ({
-            id: `${Date.now()}-${index}`,
+        const movements: StockMovement[] = po.items.map((entry, index) => {
+          const item = current.items.find((candidate) => candidate.id === entry.itemId)
+          return {
+            id: `m-po-${Date.now()}-${index}`,
             itemId: entry.itemId,
             itemName: entry.itemName,
             sku: entry.sku,
             type: "PURCHASE",
             delta: entry.quantity,
-            resultingQty: (current.items.find((item) => item.id === entry.itemId)?.quantity ?? 0) + entry.quantity,
-            referenceId: id,
+            resultingQty: (item?.quantity ?? 0) + entry.quantity,
+            referenceId: po.id,
             timestamp,
-            note: "Purchase order received on creation",
-          }))
-        : []
-      const totalAmount = lines.reduce((sum, entry) => sum + entry.quantity * entry.unitPrice, 0)
-      success = true
-      return {
-        ...current,
-        items: newItems,
-        purchases: [
-          {
-            id,
-            supplier: supplier.trim(),
-            items: lines,
-            totalAmount,
-            expectedDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-            status: received ? "Received" : "Pending",
-          },
-          ...current.purchases,
-        ],
-        movements: [...movements, ...current.movements],
-      }
-    })
-    if (success) {
-      toast.success(received ? "Purchase order created and received · stock updated" : "Purchase order created")
-    } else {
-      toast.error("Check supplier, items, quantities, and unit costs")
-    }
-    return success
-  }, [])
+            note: `Goods intake verified from ${po.supplier}`,
+            performedBy,
+            toGodown: item?.godown,
+          }
+        })
 
-  const adjustStock = useCallback((itemId: string, delta: number, note: string) => {
-    let success = false
-    setState((current) => {
-      const item = current.items.find((entry) => entry.id === itemId)
-      if (!item || !Number.isInteger(delta) || delta === 0 || item.quantity + delta < 0) return current
-      const result = item.quantity + delta
-      success = true
-      return {
-        ...current,
-        items: current.items.map((entry) => (entry.id === itemId ? { ...entry, quantity: result } : entry)),
-        movements: [
-          {
-            id: `${Date.now()}`,
-            itemId,
-            itemName: item.name,
-            sku: item.sku,
-            type: "ADJUSTMENT",
-            delta,
-            resultingQty: result,
-            referenceId: `ADJ-${Date.now().toString().slice(-4)}`,
-            timestamp: new Date().toISOString(),
-            note: note.trim() || "Manual stock correction",
-          },
-          ...current.movements,
-        ],
-      }
-    })
-    if (success) {
-      toast.success(`Stock adjusted · ${delta > 0 ? "+" : ""}${delta} units`)
-    } else {
-      toast.error("Enter a valid adjustment that does not make stock negative")
-    }
-    return success
-  }, [])
+        const units = po.items.reduce((sum, entry) => sum + entry.quantity, 0)
+        message = `${po.id} marked received · +${units} units stocked`
 
-  const transferStock = useCallback((itemId: string, fromGodown: Godown, toGodown: Godown, qty: number, note: string) => {
-    if (fromGodown === toGodown) {
-      toast.error("Source and destination godowns must be different")
-      return false
-    }
-    if (!Number.isInteger(qty) || qty < 1) {
-      toast.error("Transfer quantity must be at least 1")
-      return false
-    }
-    let success = false
-    setState((current) => {
-      const sourceItem = current.items.find((entry) => entry.id === itemId && entry.godown === fromGodown)
-      if (!sourceItem || sourceItem.quantity < qty) return current
-      const destItem = current.items.find((entry) => entry.id === itemId && entry.godown === toGodown)
-      const timestamp = new Date().toISOString()
-      const refId = `TRF-${Date.now().toString().slice(-4)}`
-      const transferNote = note.trim() || `Transferred ${qty} units from ${fromGodown} to ${toGodown}`
-      const sourceResult = sourceItem.quantity - qty
-      const destResult = (destItem?.quantity ?? 0) + qty
-      const updatedItems = destItem
-        ? current.items.map((entry) => {
-            if (entry.id === itemId && entry.godown === fromGodown) return { ...entry, quantity: sourceResult }
-            if (entry.id === itemId && entry.godown === toGodown) return { ...entry, quantity: destResult }
-            return entry
-          })
-        : [
-            ...current.items.map((entry) =>
-              entry.id === itemId && entry.godown === fromGodown ? { ...entry, quantity: sourceResult } : entry
-            ),
-            {
-              ...sourceItem,
-              godown: toGodown,
-              quantity: qty,
-              id: `${itemId}-${toGodown.replace(/\s/g, "").toLowerCase().slice(0, 6)}`,
-            },
-          ]
-      const movements: StockMovement[] = [
-        {
-          id: `${Date.now()}-out`,
-          itemId: sourceItem.id,
-          itemName: sourceItem.name,
-          sku: sourceItem.sku,
-          type: "TRANSFER",
-          delta: -qty,
-          resultingQty: sourceResult,
-          referenceId: refId,
-          timestamp,
-          note: `${transferNote} (out → ${toGodown})`,
-        },
-        {
-          id: `${Date.now()}-in`,
-          itemId: destItem?.id ?? sourceItem.id,
-          itemName: sourceItem.name,
-          sku: sourceItem.sku,
-          type: "TRANSFER",
-          delta: qty,
-          resultingQty: destResult,
-          referenceId: refId,
-          timestamp,
-          note: `${transferNote} (in ← ${fromGodown})`,
-        },
-      ]
-      success = true
-      return { ...current, items: updatedItems, movements: [...movements, ...current.movements] }
-    })
-    if (success) toast.success(`Transferred ${qty} units: ${fromGodown} → ${toGodown}`)
-    else toast.error("Transfer failed. Check source godown stock.")
-    return success
-  }, [])
+        return {
+          ...current,
+          items,
+          purchases: current.purchases.map((entry) => (entry.id === id ? { ...entry, status: "Received" } : entry)),
+          movements: [...movements, ...current.movements],
+        }
+      })
+      if (message) toast.success(message)
+    },
+    []
+  )
+
+  const createPurchaseOrder = useCallback(
+    (
+      supplierName: string,
+      inputs: LineInput[],
+      received = false,
+      supplierId?: string
+    ) => {
+      let success = false
+      setState((current) => {
+        if (
+          !supplierName.trim() ||
+          !inputs.length ||
+          new Set(inputs.map((input) => input.itemId)).size !== inputs.length ||
+          inputs.some(
+            (input) =>
+              !current.items.some((item) => item.id === input.itemId) ||
+              !Number.isInteger(input.quantity) ||
+              input.quantity < 1 ||
+              (input.unitPrice ?? current.items.find((item) => item.id === input.itemId)!.unitPrice) <= 0
+          )
+        ) {
+          return current
+        }
+
+        const lines = toOrderLines(current.items, inputs)
+        const subtotal = lines.reduce((sum, entry) => sum + entry.quantity * entry.unitPrice, 0)
+        const taxAmount = Math.round(subtotal * 0.18)
+        const totalAmount = subtotal + taxAmount
+
+        const existingNumericIds = current.purchases
+          .map((p) => Number(p.id.replace(/\D/g, "")))
+          .filter(Boolean)
+        const nextIdNumber = Math.max(2017, ...existingNumericIds) + 1
+        const id = `PO-${nextIdNumber}`
+        const timestamp = new Date().toISOString()
+
+        const matchedSupplier =
+          current.suppliers.find((s) => s.id === supplierId) ||
+          current.suppliers.find((s) => s.name.toLowerCase() === supplierName.trim().toLowerCase())
+
+        const newItems = received
+          ? current.items.map((item) => {
+              const entry = lines.find((line) => line.itemId === item.id)
+              return entry ? { ...item, quantity: item.quantity + entry.quantity } : item
+            })
+          : current.items
+
+        const movements: StockMovement[] = received
+          ? lines.map((entry, index) => {
+              const item = current.items.find((candidate) => candidate.id === entry.itemId)
+              return {
+                id: `m-po-init-${Date.now()}-${index}`,
+                itemId: entry.itemId,
+                itemName: entry.itemName,
+                sku: entry.sku,
+                type: "PURCHASE",
+                delta: entry.quantity,
+                resultingQty: (item?.quantity ?? 0) + entry.quantity,
+                referenceId: id,
+                timestamp,
+                note: `Direct replenishment intake from ${supplierName.trim()}`,
+                performedBy: "Nattu Kaka",
+                toGodown: item?.godown,
+              }
+            })
+          : []
+
+        const newPO: PurchaseOrder = {
+          id,
+          supplierId: matchedSupplier?.id,
+          supplier: supplierName.trim(),
+          items: lines,
+          subtotal,
+          taxAmount,
+          totalAmount,
+          expectedDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+          createdAt: timestamp,
+          status: received ? "Received" : "Pending",
+        }
+
+        success = true
+        return {
+          ...current,
+          items: newItems,
+          purchases: [newPO, ...current.purchases],
+          movements: [...movements, ...current.movements],
+        }
+      })
+
+      if (success) {
+        toast.success(received ? "PO created & marked received · Stock updated" : "Purchase order created")
+      } else {
+        toast.error("Check supplier, items, quantities, and rates.")
+      }
+      return success
+    },
+    []
+  )
+
+  const adjustStock = useCallback(
+    (
+      itemId: string,
+      delta: number,
+      note: string,
+      performedBy: PerformedBy = "Nattu Kaka"
+    ) => {
+      let success = false
+      setState((current) => {
+        const item = current.items.find((entry) => entry.id === itemId)
+        if (!item || !Number.isInteger(delta) || delta === 0 || item.quantity + delta < 0) return current
+        const result = item.quantity + delta
+        success = true
+
+        const movement: StockMovement = {
+          id: `m-adj-${Date.now()}`,
+          itemId,
+          itemName: item.name,
+          sku: item.sku,
+          type: "ADJUSTMENT",
+          delta,
+          resultingQty: result,
+          referenceId: `ADJ-${Date.now().toString().slice(-4)}`,
+          timestamp: new Date().toISOString(),
+          note: note.trim() || "Physical count correction",
+          performedBy,
+          fromGodown: delta < 0 ? item.godown : undefined,
+          toGodown: delta > 0 ? item.godown : undefined,
+        }
+
+        return {
+          ...current,
+          items: current.items.map((entry) => (entry.id === itemId ? { ...entry, quantity: result } : entry)),
+          movements: [movement, ...current.movements],
+        }
+      })
+
+      if (success) {
+        toast.success(`Stock adjusted · ${delta > 0 ? "+" : ""}${delta} units`)
+      } else {
+        toast.error("Enter a valid adjustment that does not make stock negative.")
+      }
+      return success
+    },
+    []
+  )
+
+  const transferStock = useCallback(
+    (
+      itemId: string,
+      fromGodown: Godown,
+      toGodown: Godown,
+      qty: number,
+      note: string,
+      performedBy: PerformedBy = "Bagha"
+    ) => {
+      if (fromGodown === toGodown) {
+        toast.error("Source and destination godowns must be different.")
+        return false
+      }
+      if (!Number.isInteger(qty) || qty < 1) {
+        toast.error("Transfer quantity must be at least 1.")
+        return false
+      }
+      let success = false
+      setState((current) => {
+        const sourceItem = current.items.find((entry) => entry.id === itemId && entry.godown === fromGodown)
+        if (!sourceItem || sourceItem.quantity < qty) return current
+
+        const destItem = current.items.find((entry) => entry.id === itemId && entry.godown === toGodown)
+        const timestamp = new Date().toISOString()
+        const refId = `TRF-${Date.now().toString().slice(-4)}`
+        const transferNote = note.trim() || `Transferred ${qty} units: ${fromGodown} → ${toGodown}`
+        const sourceResult = sourceItem.quantity - qty
+        const destResult = (destItem?.quantity ?? 0) + qty
+
+        const updatedItems = destItem
+          ? current.items.map((entry) => {
+              if (entry.id === itemId && entry.godown === fromGodown) return { ...entry, quantity: sourceResult }
+              if (entry.id === itemId && entry.godown === toGodown) return { ...entry, quantity: destResult }
+              return entry
+            })
+          : [
+              ...current.items.map((entry) =>
+                entry.id === itemId && entry.godown === fromGodown ? { ...entry, quantity: sourceResult } : entry
+              ),
+              {
+                ...sourceItem,
+                godown: toGodown,
+                quantity: qty,
+                id: `${itemId}-${toGodown.replace(/\s/g, "").toLowerCase().slice(0, 6)}`,
+              },
+            ]
+
+        const movements: StockMovement[] = [
+          {
+            id: `m-trf-out-${Date.now()}`,
+            itemId: sourceItem.id,
+            itemName: sourceItem.name,
+            sku: sourceItem.sku,
+            type: "TRANSFER",
+            delta: -qty,
+            resultingQty: sourceResult,
+            referenceId: refId,
+            timestamp,
+            note: `${transferNote} (Outbound: ${fromGodown})`,
+            performedBy,
+            fromGodown,
+            toGodown,
+          },
+          {
+            id: `m-trf-in-${Date.now()}`,
+            itemId: destItem?.id ?? sourceItem.id,
+            itemName: sourceItem.name,
+            sku: sourceItem.sku,
+            type: "TRANSFER",
+            delta: qty,
+            resultingQty: destResult,
+            referenceId: refId,
+            timestamp,
+            note: `${transferNote} (Inbound: ${toGodown})`,
+            performedBy,
+            fromGodown,
+            toGodown,
+          },
+        ]
+
+        success = true
+        return { ...current, items: updatedItems, movements: [...movements, ...current.movements] }
+      })
+
+      if (success) toast.success(`Transferred ${qty} units: ${fromGodown} → ${toGodown}`)
+      else toast.error("Transfer failed. Check source warehouse stock.")
+      return success
+    },
+    []
+  )
 
   const markSalePaid = useCallback((saleId: string) => {
     let updated = false
@@ -394,7 +515,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const resetDemoData = useCallback(() => {
     setState(seed)
     localStorage.removeItem(STORAGE_KEY)
-    toast.success("Demo data restored")
+    toast.success("Demo catalog & transactions restored")
   }, [])
 
   const value = useMemo(

@@ -4,9 +4,9 @@ import type { LucideIcon } from "lucide-react"
 
 export function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#E5E7EB] p-3.5 bg-slate-50/50">
-      <p className="text-xs text-slate-500 font-medium">{label}</p>
-      <p className="mt-1 text-sm font-semibold tabular-nums text-slate-900 truncate">{value}</p>
+    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">{label}</p>
+      <p className="mt-1 text-base font-semibold tabular-nums text-slate-900 truncate">{value}</p>
     </div>
   )
 }
@@ -28,29 +28,29 @@ export function MetricCard({
 }) {
   const trendClass =
     trendColor === "emerald"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+      ? "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20"
       : trendColor === "amber"
-      ? "bg-amber-50 text-amber-700 border-amber-100"
-      : "bg-slate-50 text-slate-600 border-slate-200"
+      ? "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20"
+      : "bg-slate-500/10 text-slate-700 ring-1 ring-inset ring-slate-500/20"
 
   return (
-    <article className="rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all">
+    <article className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:border-slate-300">
       <div className="flex items-center justify-between">
-        <span className="text-[13px] font-medium text-slate-500">{title}</span>
+        <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{title}</span>
         {Icon && (
-          <span className="flex size-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400">
-            <Icon size={16} strokeWidth={1.75} />
+          <span className="flex size-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 border border-slate-200/60">
+            <Icon size={17} strokeWidth={1.75} />
           </span>
         )}
       </div>
-      <p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums text-slate-900">
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.025em] leading-tight tabular-nums text-slate-900">
         {value}
       </p>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="text-xs text-slate-400 truncate">{note}</span>
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+        <span className="text-[14px] font-medium text-slate-500 truncate">{note}</span>
         {trend && (
           <span
-            className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium ${trendClass}`}
+            className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${trendClass}`}
           >
             {trend}
           </span>

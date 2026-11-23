@@ -1,9 +1,11 @@
 "use client"
 
-import { Activity, ArrowDownLeft, ArrowUpRight, Boxes, ChevronRight, PackageSearch, ShoppingCart, SlidersHorizontal, Truck } from "lucide-react"
+import { Activity, ArrowDownLeft, ArrowUpRight, Boxes, ChevronRight, PackageSearch, ShoppingCart, SlidersHorizontal, Truck, User } from "lucide-react"
 import type { InventoryItem, StockMovement, View } from "@/types/inventory"
 import { formatINR, timeLabel } from "@/lib/format"
+import { tableActionClass } from "@/lib/constants"
 import { MetricCard } from "@/components/ui/metric"
+import { PageIntro } from "@/components/ui/page-intro"
 import { StatusBadge, itemStatus } from "@/components/ui/status-badge"
 
 interface DashboardViewProps {
@@ -45,103 +47,104 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium text-slate-500">{currentDate}</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
-            Good morning, Jethalal
-          </h2>
-          <p className="mt-0.5 text-[13px] text-slate-500">
-            Overview of live stock, urgent replenishment, and sales activity across Mumbai godowns.
-          </p>
-        </div>
+      {/* 1. Page Header with Period Filter: Symmetrical height and spacing */}
+      <PageIntro
+        title="Good morning, Jethalal"
+        description={`${currentDate} · Multi-godown inventory parity, low-stock reorder triggers, and customer sales.`}
+        action={
+          <div className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-slate-300 bg-white p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] select-none">
+            <span className="flex items-center gap-1 px-2.5 text-xs font-semibold uppercase tracking-wider text-slate-600">
+              <SlidersHorizontal size={13} />
+              Period:
+            </span>
+            {[7, 30, 90].map((days) => (
+              <button
+                key={days}
+                type="button"
+                onClick={() => onPeriodChange(days)}
+                className={`min-h-[36px] rounded-md px-3 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                  periodDays === days
+                    ? "bg-[#09090B] text-white shadow-sm font-semibold"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                }`}
+              >
+                Last {days}d
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-        <div className="flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white p-1 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-          <span className="flex items-center gap-1.5 px-2 text-xs font-medium text-slate-400">
-            <SlidersHorizontal size={13} />
-            Period:
-          </span>
-          {[7, 30, 90].map((days) => (
-            <button
-              key={days}
-              type="button"
-              onClick={() => onPeriodChange(days)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                periodDays === days
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              Last {days}d
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* 2. Primary KPI Metrics Grid (12-column alignment) */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Total stock value"
+          title="Total Stock Valuation"
           value={formatINR(stockValue)}
-          note="Across 3 godowns"
+          note="Across 3 Mumbai godowns"
           icon={Boxes}
-          trend="+8.2%"
+          trend="+8.2% vs last month"
           trendColor="emerald"
         />
         <MetricCard
-          title="Low stock alerts"
+          title="Low Stock Alerts"
           value={`${lowStock.length} items`}
-          note="Require reordering"
+          note="At or below safety threshold"
           icon={Activity}
-          trend="Needs attention"
-          trendColor="amber"
+          trend={lowStock.length > 0 ? "Requires reorder" : "Optimal"}
+          trendColor={lowStock.length > 0 ? "amber" : "emerald"}
         />
         <MetricCard
-          title={`Sales in last ${periodDays} days`}
+          title={`Sales (${periodDays}d)`}
           value={formatINR(periodSales)}
-          note="Confirmed & paid orders"
+          note="Gross customer invoices"
           icon={ShoppingCart}
           trend="Live total"
           trendColor="emerald"
         />
         <MetricCard
-          title="Pending purchase orders"
+          title="Pending Purchase Orders"
           value={`${pendingPOs} orders`}
-          note="Expected this week"
+          note="OEM shipments in transit"
           icon={Truck}
-          trend="On track"
-          trendColor="slate"
+          trend={pendingPOs > 0 ? "Awaiting delivery" : "All received"}
+          trendColor={pendingPOs > 0 ? "slate" : "emerald"}
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
-        <section className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] px-5 py-4">
+      {/* 3. Primary Data Panels: Proportional 65/35 Split */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,1fr)]">
+        {/* Left: Low Stock Alerts Table: rounded-xl container */}
+        <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">Low stock alerts</h3>
-              <p className="mt-0.5 text-xs text-slate-500">Items at or below minimum threshold</p>
+              <h3 className="text-[15px] font-bold text-slate-900">Urgent Replenishment Alerts</h3>
+              <p className="mt-0.5 text-[13px] text-slate-600">
+                Products at or below safety reorder threshold requiring purchase orders
+              </p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate("Stock")}
-              className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              className="inline-flex min-h-[36px] items-center gap-1 rounded-md px-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
             >
-              View all stock <ChevronRight size={14} />
+              <span>View catalog</span>
+              <ChevronRight size={14} />
             </button>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-left">
               <thead className="bg-slate-50/80">
-                <tr className="border-b border-[#E5E7EB] text-xs font-medium text-slate-500">
-                  <th className="px-5 py-3 whitespace-nowrap">SKU</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Item & Category</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Godown</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Current vs Min</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Status</th>
-                  <th className="px-5 py-3 text-right whitespace-nowrap">Action</th>
+                <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <th className="px-5 py-3.5 whitespace-nowrap">SKU</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Item & Category</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Godown</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Stock / Min</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  <th className="px-5 py-3.5 text-right whitespace-nowrap">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5E7EB]">
+              <tbody className="divide-y divide-slate-100">
                 {lowStock.map((item) => {
                   const percent = item.minLevel
                     ? Math.min(100, Math.round((item.quantity / item.minLevel) * 100))
@@ -152,30 +155,30 @@ export function DashboardView({
                     <tr
                       key={item.id}
                       onClick={() => onSelect(item.id)}
-                      className="cursor-pointer hover:bg-slate-50/60 transition-colors"
+                      className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
                     >
-                      <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600">
+                      <td className="whitespace-nowrap px-5 py-4 font-mono text-xs tabular-nums text-slate-700 font-bold">
                         {item.sku}
                       </td>
-                      <td className="px-4 py-3.5">
-                        <p className="max-w-[200px] truncate text-[13px] font-medium text-slate-900">
+                      <td className="px-5 py-4">
+                        <p className="max-w-[210px] truncate text-[14px] font-semibold text-slate-900 group-hover:text-black leading-snug">
                           {item.name}
                         </p>
-                        <p className="text-xs text-slate-400">{item.category}</p>
+                        <p className="text-xs text-slate-600 mt-0.5">{item.category}</p>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3.5">
-                        <span className="rounded-md border border-[#E5E7EB] bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">
+                      <td className="whitespace-nowrap px-5 py-4">
+                        <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
                           {item.godown}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <span className="w-[60px] text-xs font-medium tabular-nums text-slate-700">
+                      <td className="whitespace-nowrap px-5 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-[56px] text-xs font-bold tabular-nums text-slate-900">
                             {item.quantity} / {item.minLevel}
                           </span>
-                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
                             <div
-                              className={`h-full rounded-full ${
+                              className={`h-full rounded-full transition-all duration-300 ${
                                 status === "In stock"
                                   ? "bg-emerald-500"
                                   : status === "Out of stock"
@@ -187,17 +190,17 @@ export function DashboardView({
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3.5">
+                      <td className="whitespace-nowrap px-5 py-4">
                         <StatusBadge status={status} />
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 text-right">
+                      <td className="whitespace-nowrap px-5 py-4 text-right">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
                             onReorder(item.id)
                           }}
-                          className="inline-flex h-8 items-center rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                          className={tableActionClass}
                         >
                           Reorder
                         </button>
@@ -210,17 +213,17 @@ export function DashboardView({
 
             {!lowStock.length && (
               <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                <span className="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                  <PackageSearch size={18} />
+                <span className="flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500 border border-slate-200">
+                  <PackageSearch size={20} />
                 </span>
-                <p className="mt-3 text-[13px] font-semibold text-slate-800">
+                <p className="mt-3.5 text-[15px] font-bold text-slate-900">
                   {items.some((i) => i.quantity <= i.minLevel)
-                    ? "No matching stock alerts"
-                    : "All stock levels are optimal"}
+                    ? "No matching alerts"
+                    : "All stock levels optimal"}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-[14px] text-slate-600">
                   {items.some((i) => i.quantity <= i.minLevel)
-                    ? "Try adjusting your search criteria."
+                    ? "Try adjusting search criteria"
                     : "No SKUs currently fall at or below their reorder threshold."}
                 </p>
                 {items.some((i) => i.quantity <= i.minLevel) && (
@@ -236,35 +239,38 @@ export function DashboardView({
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#E5E7EB] px-5 py-3 text-xs text-slate-500">
-            <span>{lowStock.length} items require replenishment</span>
+          <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3.5 text-[14px] text-slate-600 bg-slate-50/40">
+            <span>
+              {lowStock.length} {lowStock.length === 1 ? "item requires" : "items require"} replenishment
+            </span>
             <button
               type="button"
               onClick={() => onNavigate("Stock")}
-              className="font-medium text-slate-700 hover:text-slate-900"
+              className="font-semibold text-slate-900 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 rounded"
             >
-              Open stock report
+              Open stock manager →
             </button>
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] px-5 py-4">
+        {/* Right: Recent Ledger Activity: rounded-xl container */}
+        <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">Recent activity</h3>
-              <p className="mt-0.5 text-xs text-slate-500">Latest stock entries & dispatches</p>
+              <h3 className="text-[15px] font-bold text-slate-900">Recent Movements</h3>
+              <p className="mt-0.5 text-[13px] text-slate-600">Ledger entries with technician signatures</p>
             </div>
             <button
               type="button"
               onClick={() => onNavigate("Stock")}
               aria-label="View activity"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              className="flex size-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={17} />
             </button>
           </div>
 
-          <div className="divide-y divide-[#E5E7EB]">
+          <div className="divide-y divide-slate-100">
             {movements.slice(0, 6).map((movement) => {
               const plus = movement.delta > 0
               return (
@@ -272,33 +278,40 @@ export function DashboardView({
                   key={movement.id}
                   type="button"
                   onClick={() => onSelect(movement.itemId)}
-                  className="flex w-full items-start gap-3 px-5 py-3.5 text-left hover:bg-slate-50/60 transition-colors"
+                  className="flex w-full items-start gap-3.5 px-6 py-3.5 text-left hover:bg-slate-50/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                 >
                   <span
-                    className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full ${
-                      plus ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                    className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                      plus ? "bg-emerald-500/10 text-emerald-700 ring-1 ring-inset ring-emerald-500/20" : "bg-rose-500/10 text-rose-700 ring-1 ring-inset ring-rose-500/20"
                     }`}
                   >
-                    {plus ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                    {plus ? <ArrowDownLeft size={15} /> : <ArrowUpRight size={15} />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate text-[13px] font-medium text-slate-900">
+                      <span className="truncate text-[14px] font-semibold text-slate-900">
                         {movement.itemName}
                       </span>
                       <span
-                        className={`shrink-0 text-xs font-semibold tabular-nums ${
+                        className={`shrink-0 text-xs font-bold tabular-nums ${
                           plus ? "text-emerald-700" : "text-rose-700"
                         }`}
                       >
                         {plus ? "+" : ""}
-                        {movement.delta} units
+                        {movement.delta}
                       </span>
                     </div>
-                    <p className="mt-0.5 truncate text-[11px] text-slate-500">
-                      {movement.referenceId} · {movement.note}
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-400">{timeLabel(movement.timestamp)}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
+                      <span className="font-mono font-medium">{movement.referenceId}</span>
+                      <span>·</span>
+                      {movement.performedBy && (
+                        <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                          <User size={11} className="text-slate-400" />
+                          {movement.performedBy}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-500">{timeLabel(movement.timestamp)}</p>
                   </div>
                 </button>
               )
@@ -308,9 +321,9 @@ export function DashboardView({
           <button
             type="button"
             onClick={() => onNavigate("Stock")}
-            className="w-full border-t border-[#E5E7EB] px-5 py-3 text-left text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            className="w-full border-t border-slate-100 px-6 py-3.5 text-left text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
-            View full stock ledger →
+            Open complete audit ledger →
           </button>
         </section>
       </div>

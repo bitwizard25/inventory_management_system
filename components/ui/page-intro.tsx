@@ -12,12 +12,12 @@ export function PageIntro({
   action?: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="flex min-h-[48px] flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h2>
-        <p className="mt-0.5 text-[13px] text-slate-500">{description}</p>
+        <h2 className="text-2xl font-bold tracking-[-0.025em] leading-tight text-slate-900 whitespace-nowrap">{title}</h2>
+        <p className="mt-1 text-[14px] text-slate-500 leading-normal">{description}</p>
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   )
 }

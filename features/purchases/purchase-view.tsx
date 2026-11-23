@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Plus } from "lucide-react"
-import { primaryClass } from "@/lib/constants"
+import { Check, ChevronRight, Plus } from "lucide-react"
+import { primaryClass, tableActionClass } from "@/lib/constants"
 import { dateLabel, formatINR } from "@/lib/format"
 import type { PurchaseOrder } from "@/types/inventory"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -39,24 +39,26 @@ export function PurchaseView({
 
   return (
     <div className="space-y-6">
+      {/* 1. Page Title & Action: Symmetrical height and spacing */}
       <PageIntro
         title="Purchase Orders"
-        description="Replenishment orders with OEM brand distributors and logistics tracking."
+        description="OEM brand procurement, logistics tracking, and Goods Receipt Notes (GRN)."
         action={
           <button type="button" onClick={onCreate} className={primaryClass}>
-            <Plus size={15} />
-            New purchase
+            <Plus size={16} />
+            <span>New purchase</span>
           </button>
         }
       />
 
+      {/* 2. Unified Filter Toolbar */}
       <FilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Search by PO# or distributor name..."
         summary={
           isFilterActive
-            ? `Showing ${filtered.length} of ${purchases.length} purchase orders · ${statusFilter}`
+            ? `Showing ${filtered.length} of ${purchases.length} orders (${statusFilter})`
             : undefined
         }
         onClear={() => {
@@ -72,52 +74,55 @@ export function PurchaseView({
         />
       </FilterBar>
 
-      <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      {/* 3. Primary Data Table: rounded-xl container */}
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
             <thead className="bg-slate-50/80">
-              <tr className="border-b border-[#E5E7EB] text-xs font-medium text-slate-500">
-                <th className="px-5 py-3 whitespace-nowrap">PO#</th>
-                <th className="px-4 py-3 whitespace-nowrap">Distributor / Supplier</th>
-                <th className="px-4 py-3 whitespace-nowrap">Items</th>
-                <th className="px-4 py-3 whitespace-nowrap">Expected delivery</th>
-                <th className="px-4 py-3 text-right whitespace-nowrap">Total Amount</th>
-                <th className="px-4 py-3 whitespace-nowrap">Status</th>
-                <th className="px-5 py-3 text-right whitespace-nowrap">Actions</th>
+              <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <th className="px-5 py-3.5 whitespace-nowrap">PO#</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Distributor / Supplier</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Line Items</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Expected Delivery</th>
+                <th className="px-5 py-3.5 text-right whitespace-nowrap">Order Total (incl. GST)</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                <th className="px-5 py-3.5 text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5E7EB]">
+            <tbody className="divide-y divide-slate-100">
               {filtered.map((po) => (
                 <tr
                   key={po.id}
                   onClick={() => onSelect(po.id)}
-                  className="cursor-pointer hover:bg-slate-50/60 transition-colors"
+                  className="group cursor-pointer hover:bg-slate-50/80 transition-colors"
                 >
-                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-700 font-semibold">
+                  <td className="whitespace-nowrap px-5 py-4 font-mono text-xs tabular-nums text-slate-700 font-bold">
                     {po.id}
                   </td>
-                  <td className="px-4 py-3.5 text-[13px] font-medium text-slate-900">
-                    {po.supplier}
+                  <td className="px-5 py-4">
+                    <p className="text-[14px] font-semibold text-slate-900 group-hover:text-black">
+                      {po.supplier}
+                    </p>
                   </td>
-                  <td className="px-4 py-3.5">
-                    <p className="text-[13px] text-slate-800">
+                  <td className="px-5 py-4">
+                    <p className="text-[14px] font-medium text-slate-800">
                       {po.items.length} {po.items.length === 1 ? "line item" : "line items"}
                     </p>
-                    <p className="mt-0.5 max-w-[200px] truncate text-xs text-slate-400">
+                    <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-600">
                       {po.items[0]?.itemName ?? "—"}
                       {po.items.length > 1 ? ` + ${po.items.length - 1} more` : ""}
                     </p>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 text-[13px] tabular-nums text-slate-500">
+                  <td className="whitespace-nowrap px-5 py-4 text-[14px] tabular-nums text-slate-600 font-medium">
                     {dateLabel(po.expectedDate)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 text-right text-[13px] font-semibold tabular-nums text-slate-900">
+                  <td className="whitespace-nowrap px-5 py-4 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
                     {formatINR(po.totalAmount)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5">
+                  <td className="whitespace-nowrap px-5 py-4">
                     <StatusBadge status={po.status} />
                   </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right">
+                  <td className="whitespace-nowrap px-5 py-4 text-right">
                     {po.status === "Pending" ? (
                       <button
                         type="button"
@@ -125,9 +130,10 @@ export function PurchaseView({
                           e.stopPropagation()
                           onReceive(po.id)
                         }}
-                        className="inline-flex h-8 items-center rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                        className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md bg-[#09090B] px-3.5 text-xs font-semibold text-white shadow-sm hover:bg-[#27272A] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                       >
-                        Mark received
+                        <Check size={12} />
+                        <span>Receive</span>
                       </button>
                     ) : (
                       <button
@@ -136,9 +142,10 @@ export function PurchaseView({
                           e.stopPropagation()
                           onSelect(po.id)
                         }}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                        className={tableActionClass}
                       >
-                        View order
+                        <span>Details</span>
+                        <ChevronRight size={13} className="text-slate-500" />
                       </button>
                     )}
                   </td>
@@ -149,22 +156,23 @@ export function PurchaseView({
 
           {!filtered.length && (
             <EmptyState
-              message="No purchase orders found"
-              detail="Try changing your search or filters."
-              clear={
-                isFilterActive
-                  ? () => {
-                      setSearch("")
-                      setStatusFilter("All")
-                    }
-                  : undefined
-              }
+              message="No purchase orders match your criteria"
+              detail="Try adjusting search or status filters."
+              clear={() => {
+                setSearch("")
+                setStatusFilter("All")
+              }}
             />
           )}
         </div>
 
-        <div className="border-t border-[#E5E7EB] px-5 py-3 text-xs text-slate-500">
-          Showing {filtered.length} purchase orders
+        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-[14px] text-slate-600 bg-slate-50/40">
+          <span>
+            {filtered.length} of {purchases.length} orders
+          </span>
+          <span className="font-mono tabular-nums font-bold text-slate-900">
+            Total Spend: {formatINR(filtered.reduce((sum, p) => sum + p.totalAmount, 0))}
+          </span>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Download } from "lucide-react"
 import { toast } from "sonner"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { buttonClass, godowns } from "@/lib/constants"
+import { godowns, primaryClass } from "@/lib/constants"
 import { formatINR } from "@/lib/format"
 import type { Godown, InventoryItem, PurchaseOrder, SaleOrder } from "@/types/inventory"
 import { MetricCard } from "@/components/ui/metric"
@@ -19,7 +19,7 @@ interface ReportsViewProps {
 }
 
 export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
-  const [tab, setTab] = useState<"Stock report" | "Sales report" | "Purchase report">("Stock report")
+  const [tab, setTab] = useState<"Stock valuation" | "Sales & GST revenue" | "Distributor spend">("Stock valuation")
   const [godownFilter, setGodownFilter] = useState<"All godowns" | Godown>("All godowns")
   const [statusFilter, setStatusFilter] = useState<string>("All")
 
@@ -39,7 +39,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
   const salesChart = Object.entries(
     currentSales.reduce<Record<string, number>>((acc, sale) => {
       const cust = sale.customer.split(" ")[0] ?? sale.customer
-      acc[cust] = (acc[cust] ?? 0) + sale.totalAmount * 1.18
+      acc[cust] = (acc[cust] ?? 0) + sale.totalAmount
       return acc
     }, {})
   )
@@ -58,7 +58,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
   }))
 
   const rows =
-    tab === "Stock report"
+    tab === "Stock valuation"
       ? currentItems.map((item) => [
           item.sku,
           item.name,
@@ -69,15 +69,15 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
           item.quantity * item.unitPrice,
           itemStatus(item),
         ])
-      : tab === "Sales report"
+      : tab === "Sales & GST revenue"
       ? currentSales.map((sale) => [
           sale.id,
           sale.customer,
           sale.date,
           sale.items.reduce((sum, line) => sum + line.quantity, 0),
+          sale.subtotal,
+          sale.taxAmount,
           sale.totalAmount,
-          sale.totalAmount * 0.18,
-          sale.totalAmount * 1.18,
           sale.status,
         ])
       : currentPurchases.map((po) => [
@@ -85,17 +85,19 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
           po.supplier,
           po.expectedDate,
           po.items.reduce((sum, line) => sum + line.quantity, 0),
+          po.subtotal,
+          po.taxAmount,
           po.totalAmount,
           po.status,
         ])
 
   const exportCsv = () => {
     const headers =
-      tab === "Stock report"
+      tab === "Stock valuation"
         ? ["SKU", "Item", "Category", "Godown", "Quantity", "Minimum level", "Stock value INR", "Status"]
-        : tab === "Sales report"
-        ? ["SO", "Customer", "Date", "Units", "Subtotal INR", "GST INR", "Grand total INR", "Status"]
-        : ["PO", "Supplier", "Expected date", "Units", "Total INR", "Status"]
+        : tab === "Sales & GST revenue"
+        ? ["SO", "Customer", "Date", "Units", "Subtotal INR", "GST (18%) INR", "Grand total INR", "Status"]
+        : ["PO", "Supplier", "Expected date", "Units", "Subtotal INR", "GST INR", "Grand total INR", "Status"]
 
     const csv = [headers, ...rows]
       .map((row) => row.map((val) => `"${String(val).replaceAll('"', '""')}"`).join(","))
@@ -108,10 +110,10 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
     anchor.download = `${tab.toLowerCase().replaceAll(" ", "-")}.csv`
     anchor.click()
     URL.revokeObjectURL(url)
-    toast.success(`${tab} exported to CSV`)
+    toast.success(`${tab} exported successfully to CSV`)
   }
 
-  const setTabClean = (val: "Stock report" | "Sales report" | "Purchase report") => {
+  const setTabClean = (val: "Stock valuation" | "Sales & GST revenue" | "Distributor spend") => {
     setTab(val)
     setStatusFilter("All")
     setGodownFilter("All godowns")
@@ -119,37 +121,38 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
 
   return (
     <div className="space-y-6">
+      {/* 1. Page Title & Action: Symmetrical height and spacing */}
       <PageIntro
-        title="Reports & Analytics"
-        description="Exportable fiscal audit reports, category valuations, and vendor spend."
+        title="Fiscal Reports & Analytics"
+        description="Comprehensive inventory valuations, GST tax liabilities, and vendor procurement spend."
+        action={
+          <button type="button" onClick={exportCsv} className={primaryClass}>
+            <Download size={16} />
+            <span>Export CSV</span>
+          </button>
+        }
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7EB]">
-        <div className="flex gap-2">
-          {(["Stock report", "Sales report", "Purchase report"] as const).map((t) => (
+      {/* 2. Sub-Navigation Tabs & Segmented Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-1.5">
+          {(["Stock valuation", "Sales & GST revenue", "Distributor spend"] as const).map((label) => (
             <button
-              key={t}
+              key={label}
               type="button"
-              onClick={() => setTabClean(t)}
-              className={`border-b-2 px-4 py-2.5 text-[13px] font-medium transition-colors ${
-                tab === t
-                  ? "border-slate-900 text-slate-900 font-semibold"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
+              onClick={() => setTabClean(label)}
+              className={`min-h-[44px] rounded-lg px-4 py-2 text-[14px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                tab === label
+                  ? "bg-[#09090B] text-white shadow-sm font-semibold"
+                  : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
               }`}
             >
-              {t}
+              {label}
             </button>
           ))}
         </div>
 
-        <button type="button" onClick={exportCsv} className={buttonClass}>
-          <Download size={14} />
-          Export CSV
-        </button>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {tab === "Stock report" ? (
+        {tab === "Stock valuation" ? (
           <Pills
             label="Godown"
             options={["All godowns", ...godowns] as const}
@@ -160,7 +163,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
           <Pills
             label="Status"
             options={
-              tab === "Sales report"
+              tab === "Sales & GST revenue"
                 ? ["All", "Draft", "Confirmed", "Paid"]
                 : ["All", "Pending", "Received"]
             }
@@ -170,59 +173,145 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {tab === "Stock report" ? (
+      {/* 3. Recharts Analytics Panel: rounded-xl container */}
+      <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="mb-4">
+          <h3 className="text-[15px] font-bold text-slate-900">
+            {tab === "Stock valuation"
+              ? "Valuation by Product Category"
+              : tab === "Sales & GST revenue"
+              ? "Gross Revenue by Client"
+              : "Procurement Spend by Vendor"}
+          </h3>
+          <p className="mt-0.5 text-[13px] text-slate-600">Live breakdown calculated in Indian Rupees (₹)</p>
+        </div>
+
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            {tab === "Stock valuation" ? (
+              <BarChart data={stockChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
+                <YAxis
+                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 12, fill: "#475569" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Value"]}
+                  contentStyle={{
+                    borderRadius: "8px",
+                    border: "1px solid #CBD5E1",
+                    backgroundColor: "#FFFFFF",
+                    fontSize: "13px",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+                  }}
+                />
+                <Bar dataKey="value" fill="#09090B" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            ) : tab === "Sales & GST revenue" ? (
+              <AreaChart data={salesChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
+                <YAxis
+                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 12, fill: "#475569" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Revenue"]}
+                  contentStyle={{
+                    borderRadius: "8px",
+                    border: "1px solid #CBD5E1",
+                    backgroundColor: "#FFFFFF",
+                    fontSize: "13px",
+                  }}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#09090B" fill="#F1F5F9" strokeWidth={2.5} />
+              </AreaChart>
+            ) : (
+              <BarChart data={purchaseChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
+                <YAxis
+                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 12, fill: "#475569" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(val: any) => [formatINR(Number(val ?? 0))]}
+                  contentStyle={{
+                    borderRadius: "8px",
+                    border: "1px solid #CBD5E1",
+                    backgroundColor: "#FFFFFF",
+                    fontSize: "13px",
+                  }}
+                />
+                <Bar dataKey="received" stackId="a" fill="#09090B" radius={[0, 0, 0, 0]} name="Received" />
+                <Bar dataKey="pending" stackId="a" fill="#94A3B8" radius={[4, 4, 0, 0]} name="Pending" />
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 4. KPI Summary Cards */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        {tab === "Stock valuation" ? (
           <>
             <MetricCard
-              title="Stock valuation"
-              value={formatINR(currentItems.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0))}
-              note={`${currentItems.length} active SKUs`}
+              title="Catalog Items"
+              value={`${currentItems.length} SKUs`}
+              note={`${godownFilter}`}
             />
             <MetricCard
-              title="Units on hand"
-              value={currentItems.reduce((sum, it) => sum + it.quantity, 0).toLocaleString("en-IN")}
-              note="Across selected godowns"
+              title="Total Quantity"
+              value={`${currentItems.reduce((sum, item) => sum + item.quantity, 0)} units`}
+              note="Across selected locations"
             />
             <MetricCard
-              title="Low stock count"
-              value={currentItems.filter((it) => it.quantity <= it.minLevel).length}
-              note="At or below minimum limit"
+              title="Portfolio Valuation"
+              value={formatINR(currentItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0))}
+              note="At current retail pricing"
             />
           </>
-        ) : tab === "Sales report" ? (
+        ) : tab === "Sales & GST revenue" ? (
           <>
             <MetricCard
-              title="Order revenue"
-              value={formatINR(currentSales.reduce((sum, s) => sum + s.totalAmount, 0))}
+              title="Taxable Subtotal"
+              value={formatINR(currentSales.reduce((sum, s) => sum + s.subtotal, 0))}
               note={`${currentSales.length} total orders`}
             />
             <MetricCard
               title="GST (18% output)"
-              value={formatINR(currentSales.reduce((sum, s) => sum + s.totalAmount * 0.18, 0))}
-              note="Tax liability estimate"
+              value={formatINR(currentSales.reduce((sum, s) => sum + s.taxAmount, 0))}
+              note="Tax liability collected"
             />
             <MetricCard
-              title="Invoice total (incl. GST)"
-              value={formatINR(currentSales.reduce((sum, s) => sum + s.totalAmount * 1.18, 0))}
-              note="Gross customer receivables"
+              title="Gross Invoice Total"
+              value={formatINR(currentSales.reduce((sum, s) => sum + s.totalAmount, 0))}
+              note="Total customer receivables"
             />
           </>
         ) : (
           <>
             <MetricCard
-              title="Purchase spend"
+              title="Total Spend (incl. GST)"
               value={formatINR(currentPurchases.reduce((sum, po) => sum + po.totalAmount, 0))}
               note={`${currentPurchases.length} vendor orders`}
             />
             <MetricCard
-              title="Pending replenishment"
+              title="Pending Inflow"
               value={formatINR(
                 currentPurchases.filter((po) => po.status === "Pending").reduce((sum, po) => sum + po.totalAmount, 0)
               )}
               note="Awaiting warehouse GRN"
             />
             <MetricCard
-              title="Delivered orders"
+              title="Received Orders"
               value={currentPurchases.filter((po) => po.status === "Received").length}
               note="Verified by Nattu Kaka"
             />
@@ -230,150 +319,83 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
         )}
       </div>
 
-      <section className="rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold text-slate-900">
-            {tab === "Stock report"
-              ? "Stock value by product category"
-              : tab === "Sales report"
-              ? "Sales revenue distribution by client"
-              : "Purchase spend by distributor and delivery status"}
-          </h3>
-          <p className="mt-0.5 text-xs text-slate-500">Live graphical data aggregated in real time</p>
-        </div>
-
-        <div className="h-[280px] w-full">
-          {tab === "Stock report" ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stockChart} layout="vertical" margin={{ left: 10, right: 30, top: 8, bottom: 8 }}>
-                <CartesianGrid stroke="#F1F5F9" horizontal={false} />
-                <XAxis
-                  type="number"
-                  tickFormatter={(val) => `₹${(Number(val) / 1000).toFixed(0)}k`}
-                  tick={{ fill: "#64748B", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={140}
-                  tick={{ fill: "#334155", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(val) => formatINR(Number(val))}
-                  contentStyle={{ borderRadius: 8, borderColor: "#E2E8F0", fontSize: 12 }}
-                />
-                <Bar dataKey="value" fill="#09090B" radius={[0, 4, 4, 0]} barSize={16} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : tab === "Sales report" ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={salesChart} margin={{ left: 8, right: 15, top: 10, bottom: 20 }}>
-                <defs>
-                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#09090B" stopOpacity={0.12} />
-                    <stop offset="95%" stopColor="#09090B" stopOpacity={0.01} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis
-                  tickFormatter={(val) => `₹${(Number(val) / 1000).toFixed(0)}k`}
-                  tick={{ fill: "#64748B", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(val) => formatINR(Number(val))}
-                  contentStyle={{ borderRadius: 8, borderColor: "#E2E8F0", fontSize: 12 }}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#09090B" strokeWidth={1.75} fill="url(#salesGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={purchaseChart} margin={{ left: 6, right: 15, top: 12, bottom: 20 }}>
-                <CartesianGrid stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis
-                  tickFormatter={(val) => `₹${(Number(val) / 1000).toFixed(0)}k`}
-                  tick={{ fill: "#64748B", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(val) => formatINR(Number(val))}
-                  contentStyle={{ borderRadius: 8, borderColor: "#E2E8F0", fontSize: 12 }}
-                />
-                <Bar dataKey="pending" name="Pending" stackId="a" fill="#D97706" barSize={24} />
-                <Bar dataKey="received" name="Received" stackId="a" fill="#09090B" radius={[4, 4, 0, 0]} barSize={24} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </section>
-
-      <section className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        <div className="border-b border-[#E5E7EB] px-5 py-4">
-          <h3 className="text-sm font-semibold text-slate-900">{tab} Detailed Records</h3>
-          <p className="mt-0.5 text-xs text-slate-500">{rows.length} rows in active report view</p>
-        </div>
-
+      {/* 5. Detailed Breakdown Table: rounded-xl container */}
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[780px] text-left">
+          <table className="w-full min-w-[850px] text-left">
             <thead className="bg-slate-50/80">
-              <tr className="border-b border-[#E5E7EB] text-xs font-medium text-slate-500">
-                {(tab === "Stock report"
-                  ? ["SKU", "Item", "Category", "Godown", "Quantity", "Min Level", "Valuation", "Status"]
-                  : tab === "Sales report"
-                  ? ["SO#", "Customer", "Date", "Units", "Subtotal", "GST (18%)", "Grand Total", "Status"]
-                  : ["PO#", "Supplier", "Expected Date", "Units", "Total Amount", "Status"]
-                ).map((heading) => (
-                  <th
-                    key={heading}
-                    className={`px-4 py-3 whitespace-nowrap ${
-                      ["Quantity", "Min Level", "Valuation", "Units", "Subtotal", "GST (18%)", "Grand Total", "Total Amount"].includes(
-                        heading
-                      )
-                        ? "text-right"
-                        : "text-left"
-                    }`}
-                  >
-                    {heading}
-                  </th>
-                ))}
+              <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                {tab === "Stock valuation" ? (
+                  <>
+                    <th className="px-5 py-3.5 whitespace-nowrap">SKU</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Product</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Category</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Godown</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Quantity</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Min Level</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Valuation</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  </>
+                ) : tab === "Sales & GST revenue" ? (
+                  <>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Invoice#</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Customer</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Date</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Qty</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Subtotal</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">GST (18%)</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Total</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-5 py-3.5 whitespace-nowrap">PO#</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Distributor</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Expected Date</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Qty</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Subtotal</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">GST (18%)</th>
+                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Total</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
+                  </>
+                )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5E7EB]">
-              {rows.map((row, index) => (
-                <tr key={index} className="hover:bg-slate-50/60 transition-colors text-[13px]">
-                  {row.map((cell, cIndex) => {
-                    const isCurrency =
-                      typeof cell === "number" &&
-                      ((tab === "Stock report" && cIndex === 6) ||
-                        (tab === "Sales report" && [4, 5, 6].includes(cIndex)) ||
-                        (tab === "Purchase report" && cIndex === 4))
-
-                    return (
-                      <td
-                        key={cIndex}
-                        className={`px-4 py-3 whitespace-nowrap ${
-                          typeof cell === "number" ? "text-right tabular-nums" : ""
-                        } ${cIndex === 0 ? "font-mono text-xs text-slate-600 font-semibold" : "text-slate-800"}`}
-                      >
-                        {isCurrency ? formatINR(cell as number) : String(cell)}
-                      </td>
-                    )
-                  })}
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-700 font-bold">
+                    {row[0]}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-[14px] font-semibold text-slate-900">{row[1]}</td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-600">{row[2]}</td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-700">
+                    {tab === "Stock valuation" ? (
+                      <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+                        {row[3]}
+                      </span>
+                    ) : (
+                      row[3]
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-700">
+                    {row[4]}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-700">
+                    {typeof row[5] === "number" ? formatINR(row[5]) : row[5]}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] font-bold tabular-nums text-slate-900">
+                    {typeof row[6] === "number" ? formatINR(row[6]) : row[6]}
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3.5">
+                    <span className="text-[13px] font-medium text-slate-700">{row[7]}</span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

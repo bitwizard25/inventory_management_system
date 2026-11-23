@@ -18,7 +18,7 @@ export function Overlay({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-[2px] p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 motion-reduce:transition-none"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
@@ -27,21 +27,21 @@ export function Overlay({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`flex max-h-[92vh] w-full ${width} flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-2xl`}
+        className={`flex max-h-[92vh] w-full ${width} flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-2xl ring-1 ring-slate-900/5 animate-in zoom-in-95 duration-200 ease-out motion-reduce:transition-none`}
       >
-        <div className="flex items-start justify-between border-b border-[#E5E7EB] px-6 py-5">
+        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <h2 id="modal-title" className="text-lg font-semibold tracking-tight text-slate-900">
+            <h2 id="modal-title" className="text-xl font-bold tracking-[-0.025em] leading-tight text-slate-900 whitespace-nowrap">
               {title}
             </h2>
-            <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+            <p className="mt-1 text-[14px] text-slate-500">{subtitle}</p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+            className="flex size-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
         {children}
