@@ -376,8 +376,8 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
               {tab === "Stock valuation"
                 ? "Valuation by Product Category"
                 : tab === "Sales & GST revenue"
-                ? "Gross Revenue by Client"
-                : "Procurement Spend by Vendor"}
+                  ? "Gross Revenue by Client"
+                  : "Procurement Spend by Vendor"}
             </h3>
             <p className="mt-0.5 text-[13px] text-slate-500">Live breakdown calculated in Indian Rupees (₹)</p>
           </div>
