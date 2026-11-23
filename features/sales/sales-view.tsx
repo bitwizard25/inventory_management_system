@@ -2,9 +2,19 @@
 
 import { useState } from "react"
 import { Check, ChevronRight, Plus } from "lucide-react"
-import { primaryClass, tableActionClass } from "@/lib/constants"
+import {
+  primaryClass,
+  tableActionCellClass,
+  tableBodyCellClass,
+  tableBodyRowClass,
+  tableFooterClass,
+  tableHeadCellClass,
+  tableHeadRowClass,
+  tableWrapperClass,
+} from "@/lib/constants"
 import { dateLabel, formatINR } from "@/lib/format"
 import type { SaleOrder } from "@/types/inventory"
+import { TableActionButton } from "@/components/ui/table-action-button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { FilterBar } from "@/components/ui/filter-bar"
 import { PageIntro } from "@/components/ui/page-intro"
@@ -67,101 +77,97 @@ export function SalesView({ sales, onSelect, onCreate, onPaid }: SalesViewProps)
         />
       </FilterBar>
 
-      {/* 3. Primary Data Table: rounded-xl container */}
-      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left">
-            <thead className="bg-slate-50/80">
-              <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                <th className="px-5 py-3.5 whitespace-nowrap">Invoice / SO#</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Customer</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Items Summary</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Date</th>
-                <th className="px-5 py-3.5 text-right whitespace-nowrap">Order Total (incl. GST)</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
-                <th className="px-5 py-3.5 text-right whitespace-nowrap">Action</th>
+      {/* 3. Primary Data Table: standardized table primitive */}
+      <div className={tableWrapperClass}>
+        <table className="w-full min-w-[900px] text-left">
+          <thead>
+            <tr className={tableHeadRowClass}>
+              <th className={tableHeadCellClass}>Invoice / SO#</th>
+              <th className={tableHeadCellClass}>Customer</th>
+              <th className={tableHeadCellClass}>Items Summary</th>
+              <th className={tableHeadCellClass}>Date</th>
+              <th className={`${tableHeadCellClass} text-right`}>Order Total (incl. GST)</th>
+              <th className={tableHeadCellClass}>Status</th>
+              <th className={`${tableHeadCellClass} text-right`}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((sale) => (
+              <tr
+                key={sale.id}
+                onClick={() => onSelect(sale.id)}
+                className={`group cursor-pointer ${tableBodyRowClass}`}
+              >
+                <td className={`${tableBodyCellClass} font-mono text-xs text-slate-600 font-medium`}>
+                  {sale.id}
+                </td>
+                <td className={`${tableBodyCellClass} font-semibold text-slate-900 group-hover:text-slate-950`}>
+                  {sale.customer}
+                </td>
+                <td className={tableBodyCellClass}>
+                  <p className="text-[14px] font-medium text-slate-800">
+                    {sale.items.length} {sale.items.length === 1 ? "line item" : "line items"}
+                  </p>
+                  <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-600">
+                    {sale.items[0]?.itemName ?? "—"}
+                    {sale.items.length > 1 ? ` + ${sale.items.length - 1} more` : ""}
+                  </p>
+                </td>
+                <td className={`${tableBodyCellClass} text-[14px] tabular-nums text-slate-600 font-medium whitespace-nowrap`}>
+                  {dateLabel(sale.date)}
+                </td>
+                <td className={`${tableBodyCellClass} text-right font-semibold tabular-nums text-slate-900 whitespace-nowrap`}>
+                  {formatINR(sale.totalAmount)}
+                </td>
+                <td className={tableBodyCellClass}>
+                  <StatusBadge status={sale.status} />
+                </td>
+                <td className={tableActionCellClass}>
+                  {sale.status === "Confirmed" ? (
+                    <TableActionButton
+                      variant="primary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onPaid(sale.id)
+                      }}
+                    >
+                      <Check size={12} />
+                      <span>Mark paid</span>
+                    </TableActionButton>
+                  ) : (
+                    <TableActionButton
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onSelect(sale.id)
+                      }}
+                    >
+                      <span>Invoice</span>
+                      <ChevronRight size={13} className="text-slate-500" />
+                    </TableActionButton>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((sale) => (
-                <tr
-                  key={sale.id}
-                  onClick={() => onSelect(sale.id)}
-                  className="group cursor-pointer hover:bg-slate-900/[0.03] transition-colors"
-                >
-                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
-                    {sale.id}
-                  </td>
-                  <td className="px-5 py-3.5 text-[14px] font-semibold text-slate-900 group-hover:text-slate-950">
-                    {sale.customer}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <p className="text-[14px] font-medium text-slate-800">
-                      {sale.items.length} {sale.items.length === 1 ? "line item" : "line items"}
-                    </p>
-                    <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-500">
-                      {sale.items[0]?.itemName ?? "—"}
-                      {sale.items.length > 1 ? ` + ${sale.items.length - 1} more` : ""}
-                    </p>
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-[14px] tabular-nums text-slate-600 font-medium">
-                    {dateLabel(sale.date)}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
-                    {formatINR(sale.totalAmount)}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5">
-                    <StatusBadge status={sale.status} />
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right">
-                    {sale.status === "Confirmed" ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onPaid(sale.id)
-                        }}
-                        className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md bg-[#09090B] px-3.5 text-xs font-semibold text-white shadow-sm hover:bg-[#27272A] active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 whitespace-nowrap"
-                      >
-                        <Check size={12} />
-                        <span>Mark paid</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onSelect(sale.id)
-                        }}
-                        className={tableActionClass}
-                      >
-                        <span>Invoice</span>
-                        <ChevronRight size={13} className="text-slate-500" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
 
-          {!filtered.length && (
-            <EmptyState
-              message="No sales orders match your criteria"
-              detail="Try adjusting search or status filters."
-              clear={() => {
-                setSearch("")
-                setStatusFilter("All")
-              }}
-            />
-          )}
-        </div>
+        {!filtered.length && (
+          <EmptyState
+            message="No sales orders match your criteria"
+            detail="Try adjusting search or status filters."
+            clear={() => {
+              setSearch("")
+              setStatusFilter("All")
+            }}
+          />
+        )}
 
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-[14px] text-slate-600 bg-slate-50/40">
+        <div className={tableFooterClass}>
           <span>
             {filtered.length} of {sales.length} orders
           </span>
-          <span className="font-mono tabular-nums font-bold text-slate-900">
+          <span className="font-semibold text-slate-900">
             Total Revenue: {formatINR(filtered.reduce((sum, s) => sum + s.totalAmount, 0))}
           </span>
         </div>

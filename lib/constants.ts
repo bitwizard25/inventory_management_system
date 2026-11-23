@@ -21,25 +21,25 @@ export const navItems: { label: View; icon: typeof LayoutDashboard }[] = [
   { label: "Reports", icon: ChartNoAxesCombined },
 ]
 
-// 1. Primary Obsidian CTA Button (min 44px hit target, rounded-lg 8px control)
+// 1. Primary Obsidian CTA Button (compact h-9 36px, rounded-lg 8px control)
 export const primaryClass =
-  "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-[#09090B] px-4 py-2.5 text-[14px] font-medium text-white shadow-sm transition-all duration-200 ease-out hover:bg-[#27272A] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 whitespace-nowrap select-none motion-reduce:transition-none"
+  "inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#09090B] px-3.5 text-[13px] font-medium text-white shadow-sm transition-all duration-200 ease-out hover:bg-[#27272A] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 whitespace-nowrap select-none motion-reduce:transition-none"
 
-// 2. Secondary Bordered Button (min 44px hit target, rounded-lg 8px control, >=3:1 border contrast)
+// 2. Secondary Bordered Button (compact h-9 36px, rounded-lg 8px control, >=3:1 border contrast)
 export const buttonClass =
-  "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-[14px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 ease-out hover:bg-slate-50 hover:border-slate-500 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 whitespace-nowrap select-none motion-reduce:transition-none"
+  "inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 ease-out hover:bg-slate-50 hover:border-slate-400 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 whitespace-nowrap select-none motion-reduce:transition-none"
 
-// 3. Dense Inline Table Action Button (min 40px hit target, rounded-md 6px inside rounded-lg track/rounded-xl table)
+// 3. Dense Inline Table Action Button (compact h-8 32px, min-w-[98px], rounded-lg 8px)
 export const tableActionClass =
-  "inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-[13px] font-medium text-slate-800 shadow-[0_1px_1px_rgba(15,23,42,0.03)] transition-all duration-200 ease-out hover:bg-slate-50 hover:border-slate-500 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 whitespace-nowrap select-none motion-reduce:transition-none"
+  "inline-flex h-8 min-w-[98px] items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-[0_1px_1px_rgba(15,23,42,0.03)] transition-all duration-200 ease-out hover:bg-slate-50 hover:border-slate-400 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 whitespace-nowrap select-none motion-reduce:transition-none"
 
-// 4. Tertiary Ghost Button (min 44px hit target, rounded-lg 8px control)
+// 4. Tertiary Ghost Button (compact h-9 36px, rounded-lg 8px control)
 export const ghostClass =
-  "inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[14px] font-medium text-slate-700 transition-all duration-200 ease-out hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 whitespace-nowrap select-none motion-reduce:transition-none"
+  "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-slate-700 transition-all duration-200 ease-out hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 whitespace-nowrap select-none motion-reduce:transition-none"
 
 // 5. Standardized Shared Table Primitives
 export const tableWrapperClass =
-  "overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+  "overflow-x-auto rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
 
 export const tableHeadRowClass =
   "border-b border-slate-200/80 bg-slate-50/70 text-left text-xs font-medium text-slate-600"

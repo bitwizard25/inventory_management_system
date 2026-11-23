@@ -37,11 +37,11 @@ export function Header({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/80 px-6 backdrop-blur-md md:px-8">
+    <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-slate-200 bg-white px-6 md:px-8">
       <div className="flex items-center gap-3">
         <button
           type="button"
-          className="flex size-11 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+          className="flex size-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           aria-label="Open navigation"
           onClick={onOpenMobileNav}
         >
@@ -67,7 +67,7 @@ export function Header({
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search catalog or SKU..."
             aria-label="Search catalog or SKU"
-            className="min-h-[44px] w-[210px] rounded-lg border border-slate-300 bg-slate-50/60 pl-10 pr-3.5 text-[16px] text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 hover:border-slate-500 lg:w-[260px]"
+            className="h-9 w-[210px] rounded-lg border border-slate-300 bg-slate-50/60 pl-10 pr-3.5 text-[13px] text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 hover:border-slate-400 lg:w-[260px]"
           />
         </label>
 
@@ -78,7 +78,7 @@ export function Header({
             aria-label="Notifications"
             aria-expanded={notificationsOpen}
             onClick={() => setNotificationsOpen((open) => !open)}
-            className="relative flex size-11 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-500 hover:text-slate-950 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            className="relative flex size-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-950 active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
           >
             <Bell size={18} />
             {lowStock.length > 0 && (

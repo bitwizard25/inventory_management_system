@@ -4,7 +4,16 @@ import { useState } from "react"
 import { Download } from "lucide-react"
 import { toast } from "sonner"
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { godowns, primaryClass } from "@/lib/constants"
+import {
+  buttonClass,
+  godowns,
+  primaryClass,
+  tableBodyCellClass,
+  tableBodyRowClass,
+  tableHeadCellClass,
+  tableHeadRowClass,
+  tableWrapperClass,
+} from "@/lib/constants"
 import { formatINR } from "@/lib/format"
 import type { Godown, InventoryItem, PurchaseOrder, SaleOrder } from "@/types/inventory"
 import { MetricCard } from "@/components/ui/metric"
@@ -119,6 +128,18 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
     setGodownFilter("All godowns")
   }
 
+  const formatYAxisINR = (val: number) => {
+    if (val === 0) return "₹0"
+    if (val >= 100000) {
+      const lakhs = val / 100000
+      return `₹${Number.isInteger(lakhs) ? lakhs : lakhs.toFixed(1)}L`
+    }
+    if (val >= 1000) {
+      return `₹${Math.round(val / 1000)}k`
+    }
+    return `₹${val}`
+  }
+
   return (
     <div className="space-y-6">
       {/* 1. Page Title & Action: Symmetrical height and spacing */}
@@ -126,7 +147,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
         title="Fiscal Reports & Analytics"
         description="Comprehensive inventory valuations, GST tax liabilities, and vendor procurement spend."
         action={
-          <button type="button" onClick={exportCsv} className={primaryClass}>
+          <button type="button" onClick={exportCsv} className={buttonClass}>
             <Download size={16} />
             <span>Export CSV</span>
           </button>
@@ -135,16 +156,16 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
 
       {/* 2. Sub-Navigation Tabs & Segmented Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-1.5">
+        <div className="inline-flex h-9 items-center gap-1 rounded-xl bg-slate-100/90 p-1 select-none">
           {(["Stock valuation", "Sales & GST revenue", "Distributor spend"] as const).map((label) => (
             <button
               key={label}
               type="button"
               onClick={() => setTabClean(label)}
-              className={`min-h-[44px] whitespace-nowrap rounded-lg px-4 py-2 text-[14px] font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+              className={`h-7 whitespace-nowrap rounded-lg px-3 text-[13px] transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                 tab === label
-                  ? "bg-[#09090B] text-white shadow-sm font-semibold"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                  ? "bg-white text-slate-950 shadow-sm font-medium"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {label}
@@ -173,105 +194,7 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
         )}
       </div>
 
-      {/* 3. Recharts Analytics Panel: rounded-xl container */}
-      <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="mb-4">
-          <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">
-            {tab === "Stock valuation"
-              ? "Valuation by Product Category"
-              : tab === "Sales & GST revenue"
-              ? "Gross Revenue by Client"
-              : "Procurement Spend by Vendor"}
-          </h3>
-          <p className="mt-0.5 text-[13px] text-slate-500">Live breakdown calculated in Indian Rupees (₹)</p>
-        </div>
-
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            {tab === "Stock valuation" ? (
-              <BarChart data={stockChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
-                <YAxis
-                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                  tick={{ fontSize: 12, fill: "#475569" }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Value"]}
-                  contentStyle={{
-                    backgroundColor: "#09090B",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
-                  }}
-                  itemStyle={{ color: "#F8FAFC" }}
-                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
-                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
-                />
-                <Bar dataKey="value" fill="#09090B" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            ) : tab === "Sales & GST revenue" ? (
-              <AreaChart data={salesChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
-                <YAxis
-                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                  tick={{ fontSize: 12, fill: "#475569" }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Revenue"]}
-                  contentStyle={{
-                    backgroundColor: "#09090B",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
-                  }}
-                  itemStyle={{ color: "#F8FAFC" }}
-                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#09090B" fill="#F1F5F9" strokeWidth={2.5} />
-              </AreaChart>
-            ) : (
-              <BarChart data={purchaseChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
-                <YAxis
-                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                  tick={{ fontSize: 12, fill: "#475569" }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  formatter={(val: any) => [formatINR(Number(val ?? 0))]}
-                  contentStyle={{
-                    backgroundColor: "#09090B",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
-                  }}
-                  itemStyle={{ color: "#F8FAFC" }}
-                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
-                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
-                />
-                <Bar dataKey="received" stackId="a" fill="#09090B" radius={[0, 0, 0, 0]} name="Received" />
-                <Bar dataKey="pending" stackId="a" fill="#64748B" radius={[4, 4, 0, 0]} name="Pending" />
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 4. KPI Summary Cards */}
+      {/* 3. KPI Summary Cards: Moved ABOVE chart for immediate headline context */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         {tab === "Stock valuation" ? (
           <>
@@ -332,82 +255,192 @@ export function ReportsView({ items, sales, purchases }: ReportsViewProps) {
         )}
       </div>
 
-      {/* 5. Detailed Breakdown Table: rounded-xl container */}
-      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[850px] text-left">
-            <thead className="bg-slate-50/80">
-              <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                {tab === "Stock valuation" ? (
-                  <>
-                    <th className="px-5 py-3.5 whitespace-nowrap">SKU</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Product</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Category</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Godown</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Quantity</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Min Level</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Valuation</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
-                  </>
-                ) : tab === "Sales & GST revenue" ? (
-                  <>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Invoice#</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Customer</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Date</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Qty</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Subtotal</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">GST (18%)</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Total</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
-                  </>
-                ) : (
-                  <>
-                    <th className="px-5 py-3.5 whitespace-nowrap">PO#</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Distributor</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Expected Date</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Qty</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Subtotal</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">GST (18%)</th>
-                    <th className="px-5 py-3.5 text-right whitespace-nowrap">Total</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-900/[0.03] transition-colors">
-                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
-                    {row[0]}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-[14px] font-semibold text-slate-900">{row[1]}</td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-500">{row[2]}</td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-[13px] text-slate-700">
-                    {tab === "Stock valuation" ? (
-                      <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
-                        {row[3]}
-                      </span>
-                    ) : (
-                      row[3]
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-600 font-medium">
-                    {row[4]}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] tabular-nums text-slate-600 font-medium">
-                    {typeof row[5] === "number" ? formatINR(row[5]) : row[5]}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[13px] font-bold tabular-nums text-slate-900">
-                    {typeof row[6] === "number" ? formatINR(row[6]) : row[6]}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5">
-                    <span className="text-[13px] font-medium text-slate-700">{row[7]}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* 4. Recharts Analytics Panel: rounded-xl container */}
+      <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="mb-4">
+          <h3 className="text-[15px] font-bold tracking-[-0.025em] leading-tight text-slate-900">
+            {tab === "Stock valuation"
+              ? "Valuation by Product Category"
+              : tab === "Sales & GST revenue"
+              ? "Gross Revenue by Client"
+              : "Procurement Spend by Vendor"}
+          </h3>
+          <p className="mt-0.5 text-[13px] text-slate-500">Live breakdown calculated in Indian Rupees (₹)</p>
         </div>
+
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            {tab === "Stock valuation" ? (
+              <BarChart data={stockChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
+                <YAxis
+                  tickFormatter={formatYAxisINR}
+                  tick={{ fontSize: 12, fill: "#475569" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Value"]}
+                  contentStyle={{
+                    backgroundColor: "#09090B",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
+                    fontSize: "13px",
+                    padding: "8px 12px",
+                  }}
+                  itemStyle={{ color: "#F8FAFC" }}
+                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
+                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
+                />
+                <Bar dataKey="value" fill="#0F766E" maxBarSize={44} radius={[6, 6, 0, 0]} />
+              </BarChart>
+            ) : tab === "Sales & GST revenue" ? (
+              <AreaChart data={salesChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
+                <YAxis
+                  tickFormatter={formatYAxisINR}
+                  tick={{ fontSize: 12, fill: "#475569" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(val: any) => [formatINR(Number(val ?? 0)), "Revenue"]}
+                  contentStyle={{
+                    backgroundColor: "#09090B",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
+                    fontSize: "13px",
+                    padding: "8px 12px",
+                  }}
+                  itemStyle={{ color: "#F8FAFC" }}
+                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#0F766E" fill="#0F766E18" strokeWidth={2.5} />
+              </AreaChart>
+            ) : (
+              <BarChart data={purchaseChart} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#475569" }} tickLine={false} />
+                <YAxis
+                  tickFormatter={formatYAxisINR}
+                  tick={{ fontSize: 12, fill: "#475569" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  formatter={(val: any) => [formatINR(Number(val ?? 0))]}
+                  contentStyle={{
+                    backgroundColor: "#09090B",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)",
+                    fontSize: "13px",
+                    padding: "8px 12px",
+                  }}
+                  itemStyle={{ color: "#F8FAFC" }}
+                  labelStyle={{ color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}
+                  cursor={{ fill: "rgba(15, 23, 42, 0.04)" }}
+                />
+                <Bar dataKey="received" stackId="a" fill="#0F766E" maxBarSize={44} radius={[0, 0, 0, 0]} name="Received" />
+                <Bar dataKey="pending" stackId="a" fill="#334155" maxBarSize={44} radius={[6, 6, 0, 0]} name="Pending" />
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 5. Detailed Breakdown Table: standardized table primitive */}
+      <div className={tableWrapperClass}>
+        <table className="w-full min-w-[850px] text-left">
+          <thead>
+            <tr className={tableHeadRowClass}>
+              {tab === "Stock valuation" ? (
+                <>
+                  <th className={tableHeadCellClass}>SKU</th>
+                  <th className={tableHeadCellClass}>Product</th>
+                  <th className={tableHeadCellClass}>Category</th>
+                  <th className={tableHeadCellClass}>Godown</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Quantity</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Min Level</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Valuation</th>
+                  <th className={tableHeadCellClass}>Status</th>
+                </>
+              ) : tab === "Sales & GST revenue" ? (
+                <>
+                  <th className={tableHeadCellClass}>Invoice#</th>
+                  <th className={tableHeadCellClass}>Customer</th>
+                  <th className={tableHeadCellClass}>Date</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Qty</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Subtotal</th>
+                  <th className={`${tableHeadCellClass} text-right`}>GST (18%)</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Total</th>
+                  <th className={tableHeadCellClass}>Status</th>
+                </>
+              ) : (
+                <>
+                  <th className={tableHeadCellClass}>PO#</th>
+                  <th className={tableHeadCellClass}>Distributor</th>
+                  <th className={tableHeadCellClass}>Expected Date</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Qty</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Subtotal</th>
+                  <th className={`${tableHeadCellClass} text-right`}>GST (18%)</th>
+                  <th className={`${tableHeadCellClass} text-right`}>Total</th>
+                  <th className={tableHeadCellClass}>Status</th>
+                </>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, idx) => (
+              <tr key={idx} className={tableBodyRowClass}>
+                <td className={`${tableBodyCellClass} font-mono text-xs text-slate-600 font-medium`}>
+                  {row[0]}
+                </td>
+                <td className={`${tableBodyCellClass} font-semibold text-slate-900`}>{row[1]}</td>
+                <td className={`${tableBodyCellClass} text-slate-600`}>{row[2]}</td>
+                <td className={`${tableBodyCellClass} text-slate-700`}>
+                  {tab === "Stock valuation" ? (
+                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+                      {row[3]}
+                    </span>
+                  ) : (
+                    row[3]
+                  )}
+                </td>
+                <td className={`${tableBodyCellClass} text-right tabular-nums text-slate-700`}>
+                  {tab === "Stock valuation"
+                    ? row[4]
+                    : typeof row[4] === "number"
+                    ? formatINR(row[4])
+                    : row[4]}
+                </td>
+                <td
+                  className={`${tableBodyCellClass} text-right tabular-nums ${
+                    tab === "Stock valuation"
+                      ? "text-slate-700"
+                      : "font-semibold text-slate-900 whitespace-nowrap"
+                  }`}
+                >
+                  {typeof row[5] === "number"
+                    ? tab === "Stock valuation"
+                      ? row[5]
+                      : formatINR(row[5])
+                    : row[5]}
+                </td>
+                <td className={`${tableBodyCellClass} text-right font-semibold tabular-nums text-slate-900 whitespace-nowrap`}>
+                  {typeof row[6] === "number" ? formatINR(row[6]) : row[6]}
+                </td>
+                <td className={tableBodyCellClass}>
+                  <span className="text-[13px] font-medium text-slate-700">{row[7]}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )

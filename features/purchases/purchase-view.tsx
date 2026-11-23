@@ -2,9 +2,19 @@
 
 import { useState } from "react"
 import { Check, ChevronRight, Plus } from "lucide-react"
-import { primaryClass, tableActionClass } from "@/lib/constants"
+import {
+  primaryClass,
+  tableActionCellClass,
+  tableBodyCellClass,
+  tableBodyRowClass,
+  tableFooterClass,
+  tableHeadCellClass,
+  tableHeadRowClass,
+  tableWrapperClass,
+} from "@/lib/constants"
 import { dateLabel, formatINR } from "@/lib/format"
 import type { PurchaseOrder } from "@/types/inventory"
+import { TableActionButton } from "@/components/ui/table-action-button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { FilterBar } from "@/components/ui/filter-bar"
 import { PageIntro } from "@/components/ui/page-intro"
@@ -74,103 +84,97 @@ export function PurchaseView({
         />
       </FilterBar>
 
-      {/* 3. Primary Data Table: rounded-xl container */}
-      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left">
-            <thead className="bg-slate-50/80">
-              <tr className="border-b border-slate-200/80 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                <th className="px-5 py-3.5 whitespace-nowrap">PO#</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Distributor / Supplier</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Line Items</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Expected Delivery</th>
-                <th className="px-5 py-3.5 text-right whitespace-nowrap">Order Total (incl. GST)</th>
-                <th className="px-5 py-3.5 whitespace-nowrap">Status</th>
-                <th className="px-5 py-3.5 text-right whitespace-nowrap">Action</th>
+      {/* 3. Primary Data Table: standardized table primitive */}
+      <div className={tableWrapperClass}>
+        <table className="w-full min-w-[900px] text-left">
+          <thead>
+            <tr className={tableHeadRowClass}>
+              <th className={tableHeadCellClass}>PO#</th>
+              <th className={tableHeadCellClass}>Distributor / Supplier</th>
+              <th className={tableHeadCellClass}>Line Items</th>
+              <th className={tableHeadCellClass}>Expected Delivery</th>
+              <th className={`${tableHeadCellClass} text-right`}>Order Total (incl. GST)</th>
+              <th className={tableHeadCellClass}>Status</th>
+              <th className={`${tableHeadCellClass} text-right`}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((po) => (
+              <tr
+                key={po.id}
+                onClick={() => onSelect(po.id)}
+                className={`group cursor-pointer ${tableBodyRowClass}`}
+              >
+                <td className={`${tableBodyCellClass} font-mono text-xs text-slate-600 font-medium`}>
+                  {po.id}
+                </td>
+                <td className={`${tableBodyCellClass} font-semibold text-slate-900 group-hover:text-slate-950`}>
+                  {po.supplier}
+                </td>
+                <td className={tableBodyCellClass}>
+                  <p className="text-[14px] font-medium text-slate-800">
+                    {po.items.length} {po.items.length === 1 ? "line item" : "line items"}
+                  </p>
+                  <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-600">
+                    {po.items[0]?.itemName ?? "—"}
+                    {po.items.length > 1 ? ` + ${po.items.length - 1} more` : ""}
+                  </p>
+                </td>
+                <td className={`${tableBodyCellClass} text-[14px] tabular-nums text-slate-600 font-medium whitespace-nowrap`}>
+                  {dateLabel(po.expectedDate)}
+                </td>
+                <td className={`${tableBodyCellClass} text-right font-semibold tabular-nums text-slate-900 whitespace-nowrap`}>
+                  {formatINR(po.totalAmount)}
+                </td>
+                <td className={tableBodyCellClass}>
+                  <StatusBadge status={po.status} />
+                </td>
+                <td className={tableActionCellClass}>
+                  {po.status === "Pending" ? (
+                    <TableActionButton
+                      variant="primary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onReceive(po.id)
+                      }}
+                    >
+                      <Check size={12} />
+                      <span>Receive</span>
+                    </TableActionButton>
+                  ) : (
+                    <TableActionButton
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onSelect(po.id)
+                      }}
+                    >
+                      <span>Details</span>
+                      <ChevronRight size={13} className="text-slate-500" />
+                    </TableActionButton>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((po) => (
-                <tr
-                  key={po.id}
-                  onClick={() => onSelect(po.id)}
-                  className="group cursor-pointer hover:bg-slate-900/[0.03] transition-colors"
-                >
-                  <td className="whitespace-nowrap px-5 py-3.5 font-mono text-xs tabular-nums text-slate-600 font-medium">
-                    {po.id}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <p className="text-[14px] font-semibold text-slate-900 group-hover:text-slate-950">
-                      {po.supplier}
-                    </p>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <p className="text-[14px] font-medium text-slate-800">
-                      {po.items.length} {po.items.length === 1 ? "line item" : "line items"}
-                    </p>
-                    <p className="mt-0.5 max-w-[210px] truncate text-xs text-slate-500">
-                      {po.items[0]?.itemName ?? "—"}
-                      {po.items.length > 1 ? ` + ${po.items.length - 1} more` : ""}
-                    </p>
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-[14px] tabular-nums text-slate-600 font-medium">
-                    {dateLabel(po.expectedDate)}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right font-mono text-[14px] font-bold tabular-nums text-slate-900">
-                    {formatINR(po.totalAmount)}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5">
-                    <StatusBadge status={po.status} />
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3.5 text-right">
-                    {po.status === "Pending" ? (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onReceive(po.id)
-                        }}
-                        className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-md bg-[#09090B] px-3.5 text-xs font-semibold text-white shadow-sm hover:bg-[#27272A] active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 whitespace-nowrap"
-                      >
-                        <Check size={12} />
-                        <span>Receive</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onSelect(po.id)
-                        }}
-                        className={tableActionClass}
-                      >
-                        <span>Details</span>
-                        <ChevronRight size={13} className="text-slate-500" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
 
-          {!filtered.length && (
-            <EmptyState
-              message="No purchase orders match your criteria"
-              detail="Try adjusting search or status filters."
-              clear={() => {
-                setSearch("")
-                setStatusFilter("All")
-              }}
-            />
-          )}
-        </div>
+        {!filtered.length && (
+          <EmptyState
+            message="No purchase orders match your criteria"
+            detail="Try adjusting search or status filters."
+            clear={() => {
+              setSearch("")
+              setStatusFilter("All")
+            }}
+          />
+        )}
 
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-[14px] text-slate-600 bg-slate-50/40">
+        <div className={tableFooterClass}>
           <span>
             {filtered.length} of {purchases.length} orders
           </span>
-          <span className="font-mono tabular-nums font-bold text-slate-900">
+          <span className="font-semibold text-slate-900">
             Total Spend: {formatINR(filtered.reduce((sum, p) => sum + p.totalAmount, 0))}
           </span>
         </div>

@@ -16,7 +16,7 @@ export function TableActionButton({
   ...props
 }: TableActionButtonProps) {
   const baseClasses =
-    "inline-flex h-9 min-w-[108px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 active:scale-[0.98] select-none disabled:cursor-not-allowed disabled:opacity-40"
+    "inline-flex h-8 min-w-[98px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 active:scale-[0.98] select-none disabled:cursor-not-allowed disabled:opacity-40"
 
   const variantClasses =
     variant === "primary"

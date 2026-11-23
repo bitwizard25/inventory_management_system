@@ -29,7 +29,7 @@ export function FilterBar({
             onChange={(e) => onSearch(e.target.value)}
             placeholder={placeholder}
             aria-label={placeholder}
-            className="min-h-[44px] w-full rounded-lg border border-slate-300 bg-slate-50/50 pl-10 pr-9 text-[16px] text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 hover:border-slate-500"
+            className="h-9 w-full rounded-lg border border-slate-300 bg-slate-50/50 pl-10 pr-9 text-[13px] text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 hover:border-slate-400"
           />
           {search && (
             <button
@@ -51,7 +51,7 @@ export function FilterBar({
             <button
               type="button"
               onClick={onClear}
-              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
             >
               <RotateCcw size={13} />
               <span>Reset filters</span>
