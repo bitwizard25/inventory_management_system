@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Toaster } from "sonner"
 import { useInventory } from "@/hooks/use-inventory"
 import type { View } from "@/types/inventory"
@@ -13,6 +13,14 @@ import { PurchaseView } from "@/features/purchases/purchase-view"
 import { ReportsView } from "@/features/reports/reports-view"
 import { SalesView } from "@/features/sales/sales-view"
 import { StockView } from "@/features/stock/stock-view"
+
+const VIEW_MAP: Record<string, View> = {
+  dashboard: "Dashboard",
+  stock: "Stock",
+  sales: "Sales",
+  purchase: "Purchase",
+  reports: "Reports",
+}
 
 export function AppShell() {
   const inventory = useInventory()
@@ -29,6 +37,104 @@ export function AppShell() {
 
   const [modal, setModal] = useState<"sale" | "purchase" | null>(null)
   const [prefillItem, setPrefillItem] = useState<string | undefined>()
+
+  // Sync navigation and state to URL and sessionStorage
+  const syncToUrl = useCallback(
+    (
+      newView: View,
+      newPeriod: number,
+      newDrawer: { type: "stock"; id: string } | { type: "purchase"; id: string } | { type: "sale"; id: string } | null,
+      newSearch: string,
+      push = false
+    ) => {
+      if (typeof window === "undefined") return
+      const params = new URLSearchParams()
+      if (newView !== "Dashboard") params.set("view", newView.toLowerCase())
+      if (newPeriod !== 30) params.set("period", String(newPeriod))
+      if (newDrawer) params.set("drawer", `${newDrawer.type}:${newDrawer.id}`)
+      if (newSearch.trim()) params.set("q", newSearch.trim())
+
+      const qs = params.toString()
+      const newUrl = qs ? `?${qs}` : window.location.pathname
+
+      try {
+        sessionStorage.setItem("inv_view", newView)
+        sessionStorage.setItem("inv_period", String(newPeriod))
+      } catch {}
+
+      if (push) {
+        window.history.pushState(null, "", newUrl)
+      } else {
+        window.history.replaceState(null, "", newUrl)
+      }
+    },
+    []
+  )
+
+  // Hydration-safe initial restoration from URL or sessionStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const restoreFromUrlOrStorage = () => {
+      const params = new URLSearchParams(window.location.search)
+      const urlView = params.get("view")?.toLowerCase()
+      const urlPeriod = params.get("period")
+      const urlDrawer = params.get("drawer")
+      const urlSearch = params.get("q")
+
+      if (urlView && VIEW_MAP[urlView]) {
+        setView(VIEW_MAP[urlView])
+      } else {
+        const savedView = sessionStorage.getItem("inv_view") as View | null
+        if (savedView && Object.values(VIEW_MAP).includes(savedView)) {
+          setView(savedView)
+        }
+      }
+
+      if (urlPeriod && ["7", "30", "90"].includes(urlPeriod)) {
+        setPeriodDays(Number(urlPeriod))
+      } else {
+        const savedPeriod = sessionStorage.getItem("inv_period")
+        if (savedPeriod && ["7", "30", "90"].includes(savedPeriod)) {
+          setPeriodDays(Number(savedPeriod))
+        }
+      }
+
+      if (urlSearch !== null) {
+        setSearch(urlSearch)
+      }
+
+      if (urlDrawer) {
+        const [type, id] = urlDrawer.split(":")
+        if (id && (type === "stock" || type === "purchase" || type === "sale")) {
+          setDrawer({ type: type as "stock" | "purchase" | "sale", id })
+        }
+      }
+    }
+
+    restoreFromUrlOrStorage()
+
+    const onPopState = () => {
+      restoreFromUrlOrStorage()
+    }
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [])
+
+  const handleNavigate = (nextView: View) => {
+    setView(nextView)
+    syncToUrl(nextView, periodDays, drawer, search, true)
+  }
+
+  const handlePeriodChange = (days: number) => {
+    setPeriodDays(days)
+    syncToUrl(view, days, drawer, search, false)
+  }
+
+  const handleSelectDrawer = (newDrawer: { type: "stock"; id: string } | { type: "purchase"; id: string } | { type: "sale"; id: string } | null) => {
+    setDrawer(newDrawer)
+    syncToUrl(view, periodDays, newDrawer, search, false)
+  }
 
   const lowStock = items.filter((item) => item.quantity <= item.minLevel)
   const stockValue = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
@@ -59,13 +165,16 @@ export function AppShell() {
   const showStockSearch = (value: string) => {
     setSearch(value)
     setView("Stock")
+    syncToUrl("Stock", periodDays, drawer, value, true)
   }
 
   const openStockItem = (id: string) => {
     setView("Stock")
     setSearch("")
     setMobileNav(false)
-    setDrawer({ type: "stock", id })
+    const newDrawer = { type: "stock" as const, id }
+    setDrawer(newDrawer)
+    syncToUrl("Stock", periodDays, newDrawer, "", true)
   }
 
   return (
@@ -77,7 +186,7 @@ export function AppShell() {
       <div className="print:hidden">
         <Sidebar
           view={view}
-          onNavigate={setView}
+          onNavigate={handleNavigate}
           lowStockCount={lowStock.length}
           mobileNav={mobileNav}
           onCloseMobileNav={() => setMobileNav(false)}
@@ -105,14 +214,18 @@ export function AppShell() {
               lowStock={filteredLow}
               stockValue={stockValue}
               periodSales={periodSalesTotal}
+              periodSalesCount={periodSales.length}
               periodDays={periodDays}
-              onPeriodChange={setPeriodDays}
+              onPeriodChange={handlePeriodChange}
               pendingPOs={pendingPOs}
               movements={movements}
-              onNavigate={setView}
-              onSelect={(id) => setDrawer({ type: "stock", id })}
+              onNavigate={handleNavigate}
+              onSelect={(id) => handleSelectDrawer({ type: "stock", id })}
               onReorder={openPurchase}
-              onClearSearch={() => setSearch("")}
+              onClearSearch={() => {
+                setSearch("")
+                syncToUrl(view, periodDays, drawer, "", false)
+              }}
             />
           )}
 
@@ -121,15 +234,18 @@ export function AppShell() {
               items={items}
               movements={movements}
               search={search}
-              onSearch={setSearch}
-              onSelect={(id) => setDrawer({ type: "stock", id })}
+              onSearch={(val) => {
+                setSearch(val)
+                syncToUrl("Stock", periodDays, drawer, val, false)
+              }}
+              onSelect={(id) => handleSelectDrawer({ type: "stock", id })}
             />
           )}
 
           {view === "Purchase" && (
             <PurchaseView
               purchases={purchases}
-              onSelect={(id) => setDrawer({ type: "purchase", id })}
+              onSelect={(id) => handleSelectDrawer({ type: "purchase", id })}
               onCreate={() => openPurchase()}
               onReceive={inventory.markPurchaseReceived}
             />
@@ -138,7 +254,7 @@ export function AppShell() {
           {view === "Sales" && (
             <SalesView
               sales={sales}
-              onSelect={(id) => setDrawer({ type: "sale", id })}
+              onSelect={(id) => handleSelectDrawer({ type: "sale", id })}
               onCreate={() => setModal("sale")}
               onPaid={inventory.markSalePaid}
             />
@@ -153,7 +269,7 @@ export function AppShell() {
       {drawer && (
         <DetailDrawer
           drawer={drawer}
-          onClose={() => setDrawer(null)}
+          onClose={() => handleSelectDrawer(null)}
           onReceive={inventory.markPurchaseReceived}
           onAdjust={inventory.adjustStock}
           onPaid={inventory.markSalePaid}

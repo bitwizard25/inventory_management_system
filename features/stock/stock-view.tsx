@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ChevronRight } from "lucide-react"
 import {
   godowns,
@@ -40,6 +40,33 @@ export function StockView({
   const [statusFilter, setStatusFilter] = useState<"All" | ItemStatus>("All")
   const [godownFilter, setGodownFilter] = useState<"All godowns" | Godown>("All godowns")
 
+  // Hydrate filters from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const savedStatus = sessionStorage.getItem("inv_stock_status") as "All" | ItemStatus | null
+    if (savedStatus && ["All", "In stock", "Low stock", "Out of stock"].includes(savedStatus)) {
+      setStatusFilter(savedStatus)
+    }
+    const savedGodown = sessionStorage.getItem("inv_stock_godown") as "All godowns" | Godown | null
+    if (savedGodown && (savedGodown === "All godowns" || (godowns as readonly string[]).includes(savedGodown))) {
+      setGodownFilter(savedGodown)
+    }
+  }, [])
+
+  const handleStatusChange = (val: "All" | ItemStatus) => {
+    setStatusFilter(val)
+    try {
+      sessionStorage.setItem("inv_stock_status", val)
+    } catch {}
+  }
+
+  const handleGodownChange = (val: "All godowns" | Godown) => {
+    setGodownFilter(val)
+    try {
+      sessionStorage.setItem("inv_stock_godown", val)
+    } catch {}
+  }
+
   const filtered = items.filter((item) => {
     const matchesSearch = `${item.sku} ${item.name} ${item.category}`
       .toLowerCase()
@@ -53,8 +80,8 @@ export function StockView({
 
   const clearFilters = () => {
     onSearch("")
-    setStatusFilter("All")
-    setGodownFilter("All godowns")
+    handleStatusChange("All")
+    handleGodownChange("All godowns")
   }
 
   return (
@@ -81,13 +108,13 @@ export function StockView({
           label="Status"
           options={["All", "In stock", "Low stock", "Out of stock"] as const}
           value={statusFilter}
-          onChange={setStatusFilter}
+          onChange={handleStatusChange}
         />
         <div className="inline-flex items-center gap-2">
           <span className="text-xs font-medium text-slate-500 whitespace-nowrap">Godown:</span>
           <select
             value={godownFilter}
-            onChange={(e) => setGodownFilter(e.target.value as "All godowns" | Godown)}
+            onChange={(e) => handleGodownChange(e.target.value as "All godowns" | Godown)}
             className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900 hover:border-slate-400"
           >
             <option value="All godowns">All godowns</option>

@@ -10,7 +10,7 @@ import type {
   Supplier,
 } from "@/types/inventory"
 
-export const STORAGE_KEY = "gada-electronics-demo-v8"
+export const STORAGE_KEY = "gada-electronics-demo-v10"
 
 export const SELLER_METADATA: SellerInfo = {
   name: "Gada Electronics",

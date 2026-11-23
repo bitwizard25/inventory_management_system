@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react"
@@ -67,17 +68,17 @@ function toOrderLines(items: InventoryItem[], inputs: LineInput[]): OrderLine[] 
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<InventoryState>(seed)
-  const [ready, setReady] = useState(false)
+  const isHydrated = useRef(false)
 
-  // Safe schema fallback on hydration
+  // Safe schema fallback on hydration with race-condition guard
   useEffect(() => {
     try {
       const value = localStorage.getItem(STORAGE_KEY)
       if (value) {
         const parsed = JSON.parse(value) as Partial<InventoryState>
         const validItems = Array.isArray(parsed.items) && parsed.items.length > 0 ? parsed.items : seed.items
-        const validSales = Array.isArray(parsed.sales) && parsed.sales.length >= seed.sales.length ? parsed.sales : seed.sales
-        const validPurchases = Array.isArray(parsed.purchases) && parsed.purchases.length >= seed.purchases.length ? parsed.purchases : seed.purchases
+        const validSales = Array.isArray(parsed.sales) && parsed.sales.length > 0 ? parsed.sales : seed.sales
+        const validPurchases = Array.isArray(parsed.purchases) && parsed.purchases.length > 0 ? parsed.purchases : seed.purchases
         const validMovements = Array.isArray(parsed.movements) ? parsed.movements : seed.movements
         const validCustomers = Array.isArray(parsed.customers) && parsed.customers.length > 0 ? parsed.customers : seed.customers
         const validSuppliers = Array.isArray(parsed.suppliers) && parsed.suppliers.length > 0 ? parsed.suppliers : seed.suppliers
@@ -94,19 +95,19 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     } catch {
       localStorage.removeItem(STORAGE_KEY)
       setState(seed)
+    } finally {
+      isHydrated.current = true
     }
-    setReady(true)
   }, [])
 
   useEffect(() => {
-    if (ready) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-      } catch (err) {
-        console.error("Failed to save state to localStorage", err)
-      }
+    if (!isHydrated.current) return
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    } catch (err) {
+      console.error("Failed to save state to localStorage", err)
     }
-  }, [state, ready])
+  }, [state])
 
   const createSale = useCallback(
     (customerName: string, inputs: LineInput[], customerId?: string) => {
@@ -518,7 +519,14 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   const resetDemoData = useCallback(() => {
     setState(seed)
-    localStorage.removeItem(STORAGE_KEY)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+      if (typeof window !== "undefined") {
+        sessionStorage.clear()
+      }
+    } catch (err) {
+      console.error("Failed to clear storage", err)
+    }
     toast.success("Demo catalog & transactions restored")
   }, [])
 

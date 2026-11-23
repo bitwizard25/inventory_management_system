@@ -23,6 +23,7 @@ interface DashboardViewProps {
   lowStock: InventoryItem[]
   stockValue: number
   periodSales: number
+  periodSalesCount?: number
   periodDays: number
   onPeriodChange: (days: number) => void
   pendingPOs: number
@@ -38,6 +39,7 @@ export function DashboardView({
   lowStock,
   stockValue,
   periodSales,
+  periodSalesCount,
   periodDays,
   onPeriodChange,
   pendingPOs,
@@ -62,25 +64,34 @@ export function DashboardView({
         title="Good morning, Jethalal"
         description={`${currentDate} · Multi-godown inventory parity, low-stock reorder triggers, and customer sales.`}
         action={
-          <div className="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-100 p-0.5 select-none">
-            <span className="flex items-center gap-1 px-2 text-xs font-medium text-slate-600">
+          <div className="inline-flex items-center gap-2">
+            <span className="flex items-center gap-1 text-xs font-medium text-slate-500 whitespace-nowrap">
               <SlidersHorizontal size={13} />
               Period:
             </span>
-            {[7, 30, 90].map((days) => (
-              <button
-                key={days}
-                type="button"
-                onClick={() => onPeriodChange(days)}
-                className={`h-8 whitespace-nowrap rounded-md px-2.5 text-[12px] font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
-                  periodDays === days
-                    ? "bg-white text-slate-950 shadow-sm font-medium"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Last {days}d
-              </button>
-            ))}
+            <div
+              className="inline-flex h-9 items-center gap-1 rounded-lg bg-slate-100 p-0.5 select-none"
+              role="group"
+            >
+              {[7, 30, 90].map((days) => {
+                const active = periodDays === days
+                return (
+                  <button
+                    key={days}
+                    type="button"
+                    onClick={() => onPeriodChange(days)}
+                    aria-pressed={active}
+                    className={`h-8 whitespace-nowrap rounded-md px-3 text-[13px] font-medium transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+                      active
+                        ? "bg-white text-slate-950 shadow-sm font-medium"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Last {days}d
+                  </button>
+                )
+              })}
+            </div>
           </div>
         }
       />
@@ -106,9 +117,19 @@ export function DashboardView({
         <MetricCard
           title={`Sales (${periodDays}d)`}
           value={formatINR(periodSales)}
-          note="Gross customer invoices"
+          note={
+            periodSalesCount !== undefined
+              ? `${periodSalesCount} customer orders in last ${periodDays} days`
+              : "Gross customer invoices"
+          }
           icon={ShoppingCart}
-          trend="Live total"
+          trend={
+            periodDays === 7
+              ? "Last 7 days revenue"
+              : periodDays === 30
+              ? "+14.8% vs last month"
+              : "Quarter-to-date total"
+          }
           trendColor="emerald"
         />
         <MetricCard
@@ -165,11 +186,11 @@ export function DashboardView({
                             <span className="font-mono text-xs text-slate-600 font-medium shrink-0">
                               {item.sku}
                             </span>
-                            <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-700 shrink-0">
+                            <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 shrink-0">
                               {item.godown}
                             </span>
                           </div>
-                          <p className="mt-1 truncate text-[14px] font-semibold text-slate-900 group-hover:text-slate-950 leading-snug">
+                          <p className="mt-1 truncate text-[13px] font-semibold text-slate-900 group-hover:text-slate-950 leading-snug">
                             {item.name}
                           </p>
                           <p className="text-xs text-slate-600 mt-0.5">{item.category}</p>
@@ -195,7 +216,7 @@ export function DashboardView({
                                 />
                               </div>
                             </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5">Units / Safety Min</p>
+                            <p className="text-xs text-slate-500 mt-0.5">Units / Safety Min</p>
                           </div>
                           <StatusBadge status={status} />
                         </div>

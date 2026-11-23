@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, ChevronRight, Plus } from "lucide-react"
 import {
   primaryClass,
